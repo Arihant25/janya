@@ -1,211 +1,161 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
-import { Send, Bot, User, Heart, Brain, Sparkles, MessageCircle, Mic, MicOff, Volume2 } from 'lucide-react';
-import withAuth from '@/components/withAuth';
-import Navigation from '@/app/components/Navigation';
-import { useAuth } from '@/contexts/AuthContext';
+import { useState, useEffect, useRef } from 'react';
+import { Send, Mic, ArrowLeft, MoreVertical, Sparkles, ThumbsUp, ThumbsDown, 
+         BookOpen, Camera, Image, Calendar } from 'lucide-react';
+
+// Global theme configuration
+const GLOBAL_THEME = {
+  current: 'default',
+  colors: {
+    default: {
+      primary: '#6366f1',
+      secondary: '#8b5cf6',
+      accent: '#ec4899',
+      success: '#10b981',
+      warning: '#f59e0b',
+      background: '#f8fafc',
+      surface: '#ffffff',
+      text: '#1f2937',
+      textSecondary: '#6b7280',
+      border: '#e5e7eb'
+    }
+  }
+};
+
+const getCurrentTheme = () => GLOBAL_THEME.colors[GLOBAL_THEME.current];
 
 interface Message {
   id: string;
-  type: 'user' | 'ai';
   content: string;
+  sender: 'user' | 'ai';
   timestamp: Date;
-  mood?: string;
+  type: 'text' | 'typing' | 'suggestion';
   suggestions?: string[];
+  reaction?: 'like' | 'dislike' | null;
 }
 
-interface UserContext {
-  recentEntries: string[];
-  dominantMoods: string[];
-  interests: string[];
-  goals: string[];
-  challenges: string[];
-}
-
-// AI Insight Card Component
-const AIInsightCard = ({ title, content, icon }: { title: string; content: string; icon: React.ReactNode }) => (
-  <div className="bg-white bg-opacity-80 rounded-xl p-3 border border-purple-100">
-    <div className="flex items-start gap-2">
-      {icon}
-      <div>
-        <h3 className="font-medium text-sm text-gray-800">{title}</h3>
-        <p className="text-xs text-gray-600 mt-1">{content}</p>
-      </div>
-    </div>
-  </div>
-);
-
-// Message Bubble Component
-const MessageBubble = ({ message, isUser }: { message: Message; isUser: boolean }) => (
-  <div className={`flex gap-3 mb-4 ${isUser ? 'justify-end' : 'justify-start'}`}>
-    {!isUser && (
-      <div className="w-8 h-8 bg-gradient-to-r from-purple-400 to-pink-400 rounded-full flex items-center justify-center flex-shrink-0">
-        <Bot size={16} className="text-white" />
-      </div>
-    )}
-    
-    <div className={`max-w-[80%] ${isUser ? 'order-first' : ''}`}>
-      <div className={`rounded-2xl px-4 py-3 ${
-        isUser 
-          ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white' 
-          : 'bg-white border border-gray-200 text-gray-800'
-      }`}>
-        <p className="text-sm leading-relaxed">{message.content}</p>
-      </div>
-      
-      {!isUser && message.suggestions && (
-        <div className="flex flex-wrap gap-2 mt-2">
-          {message.suggestions.map((suggestion, index) => (
-            <button
-              key={index}
-              className="text-xs bg-purple-50 text-purple-700 px-3 py-1 rounded-full hover:bg-purple-100 transition-colors"
-              onClick={() => {
-                // Handle suggestion click
-                const event = new Event('suggestion-click');
-                event.suggestion = suggestion;
-                window.dispatchEvent(event);
-              }}
-            >
-              {suggestion}
-            </button>
-          ))}
-        </div>
-      )}
-      
-      <p className="text-xs text-gray-500 mt-1 px-1">
-        {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-      </p>
-    </div>
-    
-    {isUser && (
-      <div className="w-8 h-8 bg-gradient-to-r from-blue-400 to-cyan-400 rounded-full flex items-center justify-center flex-shrink-0">
-        <User size={16} className="text-white" />
-      </div>
-    )}
-  </div>
-);
-
-function ChatPageComponent() {
-  const { user } = useAuth();
+export default function ChatPageComponent() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputMessage, setInputMessage] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const [isListening, setIsListening] = useState(false);
-  const [userContext, setUserContext] = useState<UserContext | null>(null);
+  const [isTyping, setIsTyping] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
 
+  const theme = getCurrentTheme();
+
+  // Quick suggestion prompts
+  const suggestionPrompts = [
+    "How can I be more mindful today?",
+    "Help me reflect on my feelings",
+    "I need journaling ideas",
+    "Tell me about mood tracking"
+  ];
+
+  // Initialize with welcome message and suggestions
   useEffect(() => {
-    // Load chat history and user context when component mounts
-    loadChatHistory();
-    loadUserContext();
+    const welcomeMessage: Message = {
+      id: '1',
+      content: "Hi! I'm here to help with your journaling journey. How are you feeling today?",
+      sender: 'ai',
+      timestamp: new Date(),
+      type: 'text'
+    };
+    
+    const suggestionMessage: Message = {
+      id: '2',
+      content: "Here are some things we can talk about:",
+      sender: 'ai',
+      timestamp: new Date(),
+      type: 'suggestion',
+      suggestions: suggestionPrompts
+    };
+    
+    setMessages([welcomeMessage, suggestionMessage]);
   }, []);
 
-  const loadChatHistory = async () => {
-    try {
-      const response = await fetch('/api/chat');
-      if (response.ok) {
-        const data = await response.json();
-        setMessages(data.messages || []);
-      }
-    } catch (error) {
-      console.error('Error loading chat history:', error);
-      // Start with welcome message if no history
-      setMessages([{
-        id: '1',
-        type: 'ai',
-        content: `Hello ${user?.name || 'there'}! I'm your personal AI companion. I've been analyzing your recent journal entries and I'm here to support you. How are you feeling today?`,
-        timestamp: new Date(),
-        suggestions: ["Tell me about your day", "I'm feeling anxious", "I want to reflect on my goals"]
-      }]);
-    }
-  };
-
-  const loadUserContext = async () => {
-    try {
-      const response = await fetch('/api/profile');
-      if (response.ok) {
-        const profile = await response.json();
-        // Extract context from user's journal entries and profile
-        setUserContext({
-          recentEntries: profile.recentEntries || [],
-          dominantMoods: profile.dominantMoods || ['thoughtful'],
-          interests: profile.interests || ['personal growth'],
-          goals: profile.goals || ['better work-life balance'],
-          challenges: profile.challenges || ['work stress']
-        });
-      }
-    } catch (error) {
-      console.error('Error loading user context:', error);
-    }
-  };
+  // Auto scroll to bottom
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
+  const handleReaction = (messageId: string, reaction: 'like' | 'dislike') => {
+    setMessages(prev => prev.map(message => 
+      message.id === messageId 
+        ? { ...message, reaction: message.reaction === reaction ? null : reaction }
+        : message
+    ));
+  };
 
-  const handleSendMessage = async () => {
-    if (!inputMessage.trim()) return;
+  const handleSendMessage = async (content = inputMessage) => {
+    if (!content.trim()) return;
 
     const userMessage: Message = {
       id: Date.now().toString(),
-      type: 'user',
-      content: inputMessage,
-      timestamp: new Date()
+      content: content,
+      sender: 'user',
+      timestamp: new Date(),
+      type: 'text'
     };
 
     setMessages(prev => [...prev, userMessage]);
-    const currentMessage = inputMessage;
     setInputMessage('');
-    setIsLoading(true);
+    setIsTyping(true);
 
-    try {
-      const response = await fetch('/api/chat', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          message: currentMessage,
-          context: userContext
-        }),
-      });
+    // Focus back on input after sending
+    setTimeout(() => {
+      inputRef.current?.focus();
+    }, 100);
 
-      if (!response.ok) {
-        throw new Error('Failed to get AI response');
-      }
-
-      const data = await response.json();
-      
-      const aiMessage: Message = {
+    // Simulate AI response with typing indicator and delayed message
+    setTimeout(() => {
+      const aiResponse: Message = {
         id: (Date.now() + 1).toString(),
-        type: 'ai',
-        content: data.response,
+        content: generateAIResponse(content),
+        sender: 'ai',
         timestamp: new Date(),
-        suggestions: data.suggestions || [
-          "Tell me more about this",
-          "How can I improve?",
-          "What patterns do you see?"
-        ]
+        type: 'text'
       };
+      setMessages(prev => [...prev, aiResponse]);
+      setIsTyping(false);
+      
+      // Occasionally send a follow-up suggestion
+      if (Math.random() > 0.7) {
+        setTimeout(() => {
+          const followupSuggestions: Message = {
+            id: (Date.now() + 2).toString(),
+            content: "Would you like to explore more?",
+            sender: 'ai',
+            timestamp: new Date(),
+            type: 'suggestion',
+            suggestions: [
+              "Tell me more about your day",
+              "Help me identify my emotions",
+              "Give me a reflective prompt",
+              "How to journal consistently?"
+            ]
+          };
+          setMessages(prev => [...prev, followupSuggestions]);
+        }, 1000);
+      }
+    }, 1500);
+  };
 
-      setMessages(prev => [...prev, aiMessage]);
-    } catch (error) {
-      console.error('Error sending message:', error);
-      const errorMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        type: 'ai',
-        content: "I'm sorry, I'm having trouble responding right now. Please try again in a moment.",
-        timestamp: new Date()
-      };
-      setMessages(prev => [...prev, errorMessage]);
-    } finally {
-      setIsLoading(false);
-    }
+  const generateAIResponse = (userInput: string): string => {
+    const responses = [
+      "That's really interesting. Tell me more about how that made you feel.",
+      "I can sense there's a lot on your mind. Would you like to explore that further?",
+      "It sounds like you're processing something important. How has this affected your day?",
+      "Thank you for sharing that with me. What do you think might help in this situation?",
+      "I appreciate your openness. Have you considered writing about this in your journal?",
+      "That's a valuable insight. How do you think this connects to your overall wellbeing?",
+      "Your thoughts matter. How about we explore ways to incorporate these reflections into your journal?"
+    ];
+    return responses[Math.floor(Math.random() * responses.length)];
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -215,131 +165,290 @@ function ChatPageComponent() {
     }
   };
 
-  const toggleListening = () => {
-    setIsListening(!isListening);
-    // Implement speech-to-text functionality
+  const adjustTextareaHeight = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const target = e.target;
+    target.style.height = 'inherit';
+    target.style.height = `${Math.min(target.scrollHeight, 120)}px`;
+    setInputMessage(target.value);
+  };
+
+  const handleSuggestionClick = (suggestion: string) => {
+    handleSendMessage(suggestion);
   };
 
   return (
-    <div>
-      <Navigation />
-      <div className="flex flex-col h-screen bg-gradient-to-br from-purple-50 to-pink-50">
-        {/* Header */}
-        <div className="sticky top-0 z-40 bg-white bg-opacity-95 backdrop-blur-lg border-b border-gray-200">
-          <div className="max-w-md mx-auto px-4 py-4">
+    <div className="min-h-screen flex flex-col" style={{ backgroundColor: theme.background }}>
+      {/* Simplified Chat Header */}
+      <div 
+        className="sticky top-0 z-20 border-b shadow-sm"
+        style={{ backgroundColor: theme.surface, borderColor: theme.border }}
+      >
+        <div className="flex items-center justify-between px-4 py-4">
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => window.history.back()}
+              className="p-2 rounded-xl transition-colors"
+              style={{ backgroundColor: theme.background }}
+            >
+              <ArrowLeft size={20} style={{ color: theme.text }} />
+            </button>
+            
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-gradient-to-r from-purple-400 to-pink-400 rounded-full flex items-center justify-center">
-                <Brain size={20} className="text-white" />
-              </div>
-              <div>
-                <h1 className="font-bold text-gray-800">Your AI Companion</h1>
-                <p className="text-sm text-gray-600">Always here to listen and understand</p>
-              </div>
-              <div className="ml-auto">
-                <div className="flex items-center gap-1">
-                  <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-                  <span className="text-xs text-green-600">Online</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* AI Insights Panel */}
-        {userContext && (
-          <div className="max-w-md mx-auto px-4 py-4">
-            <div className="grid grid-cols-1 gap-3 mb-4">
-              <AIInsightCard
-                title="Mood Pattern"
-                content={`You've been predominantly ${userContext.dominantMoods[0]} lately, with a focus on ${userContext.interests[0]}.`}
-                icon={<Heart size={16} className="text-purple-600" />}
-              />
-              <AIInsightCard
-                title="Growth Opportunity"
-                content={`Your entries show progress toward "${userContext.goals[0]}". Keep building on this momentum!`}
-                icon={<Sparkles size={16} className="text-purple-600" />}
-              />
-            </div>
-          </div>
-        )}
-
-        {/* Messages */}
-        <div className="flex-1 max-w-md mx-auto px-4 overflow-y-auto">
-          <div className="pb-4">
-            {messages.map((message) => (
-              <MessageBubble
-                key={message.id}
-                message={message}
-                isUser={message.type === 'user'}
-              />
-            ))}
-            
-            {isLoading && (
-              <div className="flex gap-3 justify-start mb-4">
-                <div className="w-8 h-8 bg-gradient-to-r from-purple-400 to-pink-400 rounded-full flex items-center justify-center">
-                  <Bot size={16} className="text-white" />
-                </div>
-                <div className="bg-white border border-gray-200 rounded-2xl px-4 py-3">
-                  <div className="flex space-x-1">
-                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
-                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
-                  </div>
-                </div>
-              </div>
-            )}
-            
-            <div ref={messagesEndRef} />
-          </div>
-        </div>
-
-        {/* Input Area */}
-        <div className="sticky bottom-0 bg-white bg-opacity-95 backdrop-blur-lg border-t border-gray-200 p-4">
-          <div className="max-w-md mx-auto">
-            <div className="flex items-end gap-3">
-              <div className="flex-1 relative">
-                <textarea
-                  value={inputMessage}
-                  onChange={(e) => setInputMessage(e.target.value)}
-                  onKeyPress={handleKeyPress}
-                  placeholder="Share your thoughts with me..."
-                  className="w-full px-4 py-3 pr-12 bg-gray-100 rounded-2xl focus:bg-white focus:ring-2 focus:ring-purple-300 transition-all duration-300 resize-none max-h-32"
-                  rows={1}
-                  style={{ minHeight: '48px' }}
-                />
-                <button
-                  onClick={toggleListening}
-                  className={`absolute right-3 top-1/2 transform -translate-y-1/2 p-2 rounded-full transition-colors ${
-                    isListening ? 'bg-red-100 text-red-600' : 'bg-gray-200 text-gray-600 hover:bg-gray-300'
-                  }`}
-                >
-                  {isListening ? <MicOff size={16} /> : <Mic size={16} />}
-                </button>
+              {/* Simple Avatar */}
+              <div 
+                className="w-10 h-10 rounded-full flex items-center justify-center"
+                style={{ backgroundColor: theme.primary }}
+              >
+                <Sparkles size={20} className="text-white" />
               </div>
               
-              <button
-                onClick={handleSendMessage}
-                disabled={!inputMessage.trim() || isLoading}
-                className="p-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-2xl hover:shadow-lg transform hover:scale-105 transition-all duration-300 disabled:opacity-50 disabled:transform-none"
+              <div>
+                <h1 className="font-semibold" style={{ color: theme.text }}>
+                  Your Journal Companion
+                </h1>
+                <p className="text-sm" style={{ color: theme.textSecondary }}>
+                  Ready to chat
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <button 
+            className="p-2 rounded-xl transition-colors"
+            style={{ backgroundColor: theme.background }}
+          >
+            <MoreVertical size={20} style={{ color: theme.text }} />
+          </button>
+        </div>
+      </div>
+
+      {/* Messages Container */}
+      <div className="flex-1 overflow-y-auto px-4 py-6 pb-24">
+        <div className="max-w-3xl mx-auto space-y-6">
+          {messages.map((message) => (
+            <div key={message.id} className="animate-fadeIn">
+              {message.type === 'suggestion' ? (
+                <div className="flex justify-center my-4">
+                  <div className="flex flex-wrap gap-2 justify-center max-w-xs sm:max-w-md">
+                    {message.suggestions?.map((suggestion, index) => (
+                      <button
+                        key={index}
+                        onClick={() => handleSuggestionClick(suggestion)}
+                        className="px-3 py-2 rounded-xl text-sm font-medium transition-colors shadow-sm"
+                        style={{ 
+                          backgroundColor: theme.surface, 
+                          border: `1px solid ${theme.border}`,
+                          color: theme.text 
+                        }}
+                      >
+                        {suggestion}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                <div className={`flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
+                  {message.sender === 'ai' && (
+                    <div 
+                      className="w-8 h-8 rounded-full flex items-center justify-center mr-2 flex-shrink-0"
+                      style={{ backgroundColor: theme.primary + '20' }}
+                    >
+                      <Sparkles size={16} style={{ color: theme.primary }} />
+                    </div>
+                  )}
+                  
+                  <div 
+                    className={`max-w-xs lg:max-w-md rounded-2xl ${
+                      message.sender === 'user' ? 'rounded-tr-none' : 'rounded-tl-none'
+                    } shadow-sm`}
+                    style={{
+                      backgroundColor: message.sender === 'user' ? theme.primary : theme.surface,
+                      color: message.sender === 'user' ? 'white' : theme.text,
+                      border: message.sender === 'ai' ? `1px solid ${theme.border}` : 'none'
+                    }}
+                  >
+                    <div className="px-4 py-3">
+                      <p className="text-sm leading-relaxed">{message.content}</p>
+                      
+                      <div className={`flex items-center justify-between mt-2 ${
+                        message.sender === 'user' ? 'text-white' : ''
+                      }`} style={{ 
+                        color: message.sender === 'user' ? 'rgba(255,255,255,0.7)' : theme.textSecondary 
+                      }}>
+                        <span className="text-xs">
+                          {message.timestamp.toLocaleTimeString('en-US', {
+                            hour: '2-digit',
+                            minute: '2-digit'
+                          })}
+                        </span>
+                        
+                        {message.sender === 'ai' && (
+                          <div className="flex items-center gap-1">
+                            <button 
+                              onClick={() => handleReaction(message.id, 'like')}
+                              className={`p-1 rounded-full transition-colors ${
+                                message.reaction === 'like' ? 'opacity-100' : 'opacity-50 hover:opacity-75'
+                              }`}
+                              style={{ 
+                                backgroundColor: message.reaction === 'like' ? theme.success + '20' : 'transparent'
+                              }}
+                            >
+                              <ThumbsUp 
+                                size={14} 
+                                style={{ 
+                                  color: message.reaction === 'like' ? theme.success : theme.textSecondary 
+                                }} 
+                              />
+                            </button>
+                            <button 
+                              onClick={() => handleReaction(message.id, 'dislike')}
+                              className={`p-1 rounded-full transition-colors ${
+                                message.reaction === 'dislike' ? 'opacity-100' : 'opacity-50 hover:opacity-75'
+                              }`}
+                              style={{ 
+                                backgroundColor: message.reaction === 'dislike' ? '#ef444420' : 'transparent'
+                              }}
+                            >
+                              <ThumbsDown 
+                                size={14} 
+                                style={{ 
+                                  color: message.reaction === 'dislike' ? '#ef4444' : theme.textSecondary 
+                                }} 
+                              />
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {message.sender === 'user' && (
+                    <div 
+                      className="w-8 h-8 rounded-full flex items-center justify-center ml-2 flex-shrink-0"
+                      style={{ backgroundColor: theme.accent + '20' }}
+                    >
+                      <div 
+                        className="w-4 h-4 rounded-full"
+                        style={{ backgroundColor: theme.accent }}
+                      />
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          ))}
+
+          {/* Typing indicator */}
+          {isTyping && (
+            <div className="flex justify-start">
+              <div 
+                className="w-8 h-8 rounded-full flex items-center justify-center mr-2 flex-shrink-0"
+                style={{ backgroundColor: theme.primary + '20' }}
               >
-                <Send size={20} />
+                <Sparkles size={16} style={{ color: theme.primary }} />
+              </div>
+              
+              <div 
+                className="px-4 py-3 rounded-2xl rounded-tl-none shadow-sm"
+                style={{ backgroundColor: theme.surface, border: `1px solid ${theme.border}` }}
+              >
+                <div className="flex space-x-1 items-center h-5">
+                  <div className="w-2 h-2 rounded-full animate-bounce" style={{ backgroundColor: theme.primary }}></div>
+                  <div className="w-2 h-2 rounded-full animate-bounce" style={{ backgroundColor: theme.primary, animationDelay: '0.1s' }}></div>
+                  <div className="w-2 h-2 rounded-full animate-bounce" style={{ backgroundColor: theme.primary, animationDelay: '0.2s' }}></div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          <div ref={messagesEndRef} />
+        </div>
+      </div>
+
+      {/* Simplified Message Input */}
+      <div 
+        className="fixed bottom-0 left-0 right-0 border-t p-4"
+        style={{ backgroundColor: theme.surface, borderColor: theme.border }}
+      >
+        <div className="max-w-3xl mx-auto rounded-2xl shadow-sm" style={{ backgroundColor: theme.surface }}>
+          {/* Simplified Quick actions */}
+          <div className="px-3 py-2 flex items-center justify-between">
+            <div className="flex gap-2">
+              <button className="p-2 rounded-lg transition-colors" style={{ color: theme.textSecondary }}>
+                <BookOpen size={18} />
+              </button>
+              <button className="p-2 rounded-lg transition-colors" style={{ color: theme.textSecondary }}>
+                <Camera size={18} />
+              </button>
+              <button className="p-2 rounded-lg transition-colors" style={{ color: theme.textSecondary }}>
+                <Image size={18} />
+              </button>
+              <button className="p-2 rounded-lg transition-colors" style={{ color: theme.textSecondary }}>
+                <Calendar size={18} />
               </button>
             </div>
-            
-            <div className="flex items-center justify-between mt-2 px-2">
-              <p className="text-xs text-gray-500">
-                Your AI companion learns from your journal entries
-              </p>
-              <button className="text-xs text-purple-600 hover:text-purple-700">
-                <Volume2 size={14} className="inline mr-1" />
-                Read aloud
-              </button>
+          </div>
+          
+          <div className="flex items-end gap-2 p-3">
+            {/* Input area */}
+            <div className="flex-1 relative">
+              <textarea
+                ref={inputRef}
+                value={inputMessage}
+                onChange={adjustTextareaHeight}
+                onKeyPress={handleKeyPress}
+                placeholder="Type your message..."
+                className="w-full px-4 py-3 border-0 rounded-xl resize-none focus:outline-none focus:ring-2 transition-all"
+                style={{ 
+                  backgroundColor: theme.background,
+                  color: theme.text,
+                  minHeight: '48px', 
+                  maxHeight: '120px',
+                  focusRingColor: theme.primary + '40'
+                }}
+                rows={1}
+              />
             </div>
+
+            {/* Voice input button */}
+            <button 
+              className="p-3 rounded-full transition-colors"
+              style={{ backgroundColor: theme.background, color: theme.textSecondary }}
+            >
+              <Mic size={20} />
+            </button>
+
+            {/* Send button */}
+            <button
+              onClick={() => handleSendMessage()}
+              disabled={!inputMessage.trim()}
+              className={`p-3 rounded-full transition-all ${
+                inputMessage.trim() 
+                  ? 'shadow-md hover:shadow-lg transform hover:scale-105' 
+                  : 'cursor-not-allowed opacity-50'
+              }`}
+              style={{
+                backgroundColor: inputMessage.trim() ? theme.primary : theme.border,
+                color: 'white'
+              }}
+            >
+              <Send size={18} />
+            </button>
           </div>
         </div>
       </div>
+      
+      {/* Animation styles */}
+      <style jsx global>{`
+        @keyframes fadeIn {
+          from { opacity: 0; transform: translateY(10px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .animate-fadeIn {
+          animation: fadeIn 0.3s ease-out forwards;
+        }
+      `}</style>
     </div>
   );
 }
-
-export default withAuth(ChatPageComponent);

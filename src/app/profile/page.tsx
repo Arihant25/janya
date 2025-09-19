@@ -3,8 +3,14 @@
 import { useState, useEffect } from 'react';
 import withAuth from '@/components/withAuth';
 import { useAuth } from '@/contexts/AuthContext';
-import { apiService } from '@/lib/api';
 import { useRouter } from 'next/navigation';
+import { ArrowLeft, User, BarChart3, Settings, Award, LogOut } from 'lucide-react';
+
+// Components
+import StatsGrid from './components/StatsGrid';
+import PersonalInfo from './components/PersonalInfo';
+import PreferencesCard from './components/PreferencesCard';
+import AchievementsGrid from './components/AchievementsGrid';
 
 interface UserProfile {
   id: string;
@@ -17,24 +23,81 @@ interface UserProfile {
     journalReminders?: boolean;
     dailyInsights?: boolean;
     weeklyReports?: boolean;
+    pushNotifications?: boolean;
   };
   stats?: {
     totalEntries: number;
     currentStreak: number;
     longestStreak: number;
-    moodDistribution: any;
+    totalWords: number;
     favoriteThemes: string[];
+    weeklyAverage: number;
   };
   achievements?: any[];
 }
 
-function ProfilePage() {
+// Mock achievements data
+const mockAchievements = [
+  {
+    id: '1',
+    name: 'First Entry',
+    description: 'Write your first journal entry',
+    icon: '✨',
+    unlocked: true,
+    rarity: 'common' as const
+  },
+  {
+    id: '2',
+    name: 'Week Warrior',
+    description: 'Journal for 7 consecutive days',
+    icon: '🔥',
+    unlocked: true,
+    rarity: 'rare' as const
+  },
+  {
+    id: '3',
+    name: 'Word Smith',
+    description: 'Write 10,000 words total',
+    icon: '📝',
+    unlocked: false,
+    progress: 7500,
+    maxProgress: 10000,
+    rarity: 'epic' as const
+  },
+  {
+    id: '4',
+    name: 'Consistency King',
+    description: 'Maintain a 30-day streak',
+    icon: '👑',
+    unlocked: false,
+    progress: 12,
+    maxProgress: 30,
+    rarity: 'legendary' as const
+  }
+];
+
+type TabType = 'overview' | 'profile' | 'preferences' | 'achievements';
+
+interface TabItem {
+  id: TabType;
+  label: string;
+  icon: React.ElementType;
+}
+
+const tabs: TabItem[] = [
+  { id: 'overview', label: 'Overview', icon: BarChart3 },
+  { id: 'profile', label: 'Profile', icon: User },
+  { id: 'preferences', label: 'Settings', icon: Settings },
+  { id: 'achievements', label: 'Awards', icon: Award }
+];
+
+function ProfilePageComponent() {
   const { user, logout, updateUser } = useAuth();
   const router = useRouter();
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
-  const [editing, setEditing] = useState(false);
   const [error, setError] = useState('');
+  const [activeTab, setActiveTab] = useState<TabType>('overview');
 
   useEffect(() => {
     fetchProfile();
@@ -42,8 +105,43 @@ function ProfilePage() {
 
   const fetchProfile = async () => {
     try {
-      const response = await apiService.getProfile();
-      setProfile(response.profile);
+      setLoading(true);
+
+      // Try to get from localStorage for demo
+      const storedJournals = localStorage.getItem('janya-journals');
+      const journals = storedJournals ? JSON.parse(storedJournals) : [];
+
+      // Calculate stats from journals
+      const totalEntries = journals.length;
+      const totalWords = journals.reduce((sum: number, journal: any) =>
+        sum + (journal.content?.split(' ').length || 0), 0);
+
+      // Mock profile data
+      const mockProfile: UserProfile = {
+        id: user?.id || '1',
+        name: user?.name || 'Janya User',
+        email: user?.email || 'user@janya.com',
+        avatar: user?.avatar,
+        musicPlatform: 'spotify',
+        joinDate: '2024-01-01',
+        preferences: {
+          journalReminders: true,
+          dailyInsights: true,
+          weeklyReports: false,
+          pushNotifications: true
+        },
+        stats: {
+          totalEntries,
+          currentStreak: 5,
+          longestStreak: 12,
+          totalWords,
+          favoriteThemes: ['thoughtful', 'happy', 'calm'],
+          weeklyAverage: Math.ceil(totalEntries / 4) || 1
+        },
+        achievements: mockAchievements
+      };
+
+      setProfile(mockProfile);
     } catch (error: any) {
       setError(error.message || 'Failed to load profile');
     } finally {
@@ -51,14 +149,22 @@ function ProfilePage() {
     }
   };
 
-  const handleSaveProfile = async (updatedProfile: Partial<UserProfile>) => {
+  const handleSaveProfile = async (updatedData: any) => {
     try {
-      await updateUser(updatedProfile);
-      setProfile(prev => prev ? { ...prev, ...updatedProfile } : null);
-      setEditing(false);
+      setProfile(prev => prev ? { ...prev, ...updatedData } : null);
+      // In real app, call API to update profile
+      console.log('Profile updated:', updatedData);
     } catch (error: any) {
       setError(error.message || 'Failed to update profile');
     }
+  };
+
+  const handlePreferenceChange = (key: string, value: boolean) => {
+    const updatedPreferences = {
+      ...profile?.preferences,
+      [key]: value
+    };
+    handleSaveProfile({ preferences: updatedPreferences });
   };
 
   const handleLogout = () => {
@@ -66,12 +172,46 @@ function ProfilePage() {
     router.push('/');
   };
 
+  const handleBack = () => {
+    router.push('/journals');
+  };
+
+  const renderTabContent = () => {
+    if (!profile) return null;
+
+    switch (activeTab) {
+      case 'overview':
+        return <StatsGrid stats={profile.stats!} />;
+      case 'profile':
+        return (
+          <PersonalInfo
+            profile={profile}
+            onSave={handleSaveProfile}
+          />
+        );
+      case 'preferences':
+        return (
+          <PreferencesCard
+            preferences={profile.preferences!}
+            onPreferenceChange={handlePreferenceChange}
+          />
+        );
+      case 'achievements':
+        return <AchievementsGrid achievements={profile.achievements!} />;
+      default:
+        return null;
+    }
+  };
+
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-purple-50 to-pink-50 flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-purple-500 mx-auto mb-4"></div>
-          <p className="text-purple-600">Loading profile...</p>
+          <div className="w-12 h-12 mx-auto mb-4 rounded-full animate-spin"
+            style={{ background: 'var(--janya-warm-gradient)' }}>
+            <div className="w-full h-full rounded-full border-4 border-transparent border-t-white" />
+          </div>
+          <p className="text-gray-600">Loading your profile...</p>
         </div>
       </div>
     );
@@ -79,12 +219,17 @@ function ProfilePage() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-purple-50 to-pink-50 flex items-center justify-center">
-        <div className="text-center">
-          <p className="text-red-600 mb-4">{error}</p>
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center max-w-md mx-auto px-4">
+          <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-red-100 flex items-center justify-center">
+            <span className="text-2xl">⚠️</span>
+          </div>
+          <h3 className="text-xl font-bold mb-2 text-gray-900">Something went wrong</h3>
+          <p className="text-gray-600 mb-6">{error}</p>
           <button
             onClick={fetchProfile}
-            className="px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600"
+            className="px-6 py-3 rounded-xl text-white transition-colors"
+            style={{ background: 'var(--janya-primary)' }}
           >
             Try Again
           </button>
@@ -93,250 +238,70 @@ function ProfilePage() {
     );
   }
 
-  return (
-    <div className="min-h-screen bg-gradient-to-b from-purple-50 to-pink-50">
-      <div className="container mx-auto px-4 py-8">
-        {/* Header */}
-        <div className="flex justify-between items-center mb-8">
-          <h1 className="text-3xl font-bold text-purple-800">My Profile</h1>
-          <div className="flex space-x-4">
-            <button
-              onClick={() => router.push('/journal')}
-              className="px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-colors"
-            >
-              Back to Journal
-            </button>
-            <button
-              onClick={handleLogout}
-              className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
-            >
-              Logout
-            </button>
-          </div>
-        </div>
+  if (!profile) return null;
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Profile Info */}
-          <div className="lg:col-span-2">
-            <div className="bg-white rounded-2xl shadow-lg p-6 mb-6">
-              <div className="flex justify-between items-start mb-6">
-                <h2 className="text-2xl font-semibold text-gray-800">Personal Information</h2>
+  return (
+    <div className="min-h-screen bg-gray-50">
+      {/* Header */}
+      <div className="sticky top-0 z-20 bg-white/95 backdrop-blur-lg border-b border-gray-100">
+        <div className="px-4 py-4">
+          {/* Top Bar */}
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-3">
+              <button
+                onClick={handleBack}
+                className="p-2 rounded-xl bg-gray-100 hover:bg-gray-200 transition-colors"
+              >
+                <ArrowLeft size={20} className="text-gray-700" />
+              </button>
+              {/* <div>
+                <h1 className="text-xl font-bold text-gray-900">{profile.name}</h1>
+                <p className="text-sm text-gray-500">Member since {new Date(profile.joinDate).getFullYear()}</p>
+              </div> */}
+            </div>
+
+            {/* Enhanced Logout Button */}
+            <div className="relative">
+              <button
+                onClick={handleLogout}
+                className="flex items-center gap-2 px-4 py-2 rounded-xl bg-red-50 hover:bg-red-100 text-red-600 hover:text-red-700 transition-all duration-300 hover:scale-105 active:scale-95"
+              >
+                <LogOut size={16} />
+                <span className="text-sm font-medium hidden sm:block">Sign Out</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Mini Navbar */}
+          <div className="flex gap-1 bg-gray-100 p-1 rounded-2xl">
+            {tabs.map((tab) => {
+              const Icon = tab.icon;
+              const isActive = activeTab === tab.id;
+
+              return (
                 <button
-                  onClick={() => setEditing(!editing)}
-                  className="px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-colors"
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`flex-1 flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl transition-all duration-300 ${isActive
+                    ? 'bg-white shadow-sm text-gray-900 scale-105'
+                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                    }`}
                 >
-                  {editing ? 'Cancel' : 'Edit'}
+                  <Icon size={16} />
+                  <span className="text-sm font-medium hidden sm:block">{tab.label}</span>
                 </button>
-              </div>
-
-              {editing ? (
-                <EditProfileForm 
-                  profile={profile}
-                  onSave={handleSaveProfile}
-                  onCancel={() => setEditing(false)}
-                />
-              ) : (
-                <ProfileDisplay profile={profile} />
-              )}
-            </div>
-
-            {/* Achievements Section */}
-            <div className="bg-white rounded-2xl shadow-lg p-6">
-              <h3 className="text-xl font-semibold text-gray-800 mb-4">Achievements</h3>
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                {profile?.achievements?.length ? (
-                  profile.achievements.map((achievement, index) => (
-                    <div key={index} className="text-center p-4 bg-gradient-to-br from-yellow-100 to-orange-100 rounded-lg">
-                      <div className="text-2xl mb-2">{achievement.icon || '🏆'}</div>
-                      <div className="text-sm font-medium text-gray-800">{achievement.name}</div>
-                      <div className="text-xs text-gray-600">{achievement.description}</div>
-                    </div>
-                  ))
-                ) : (
-                  <div className="col-span-full text-center p-8 text-gray-500 italic">
-                    Keep journaling to unlock achievements!
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-
-          {/* Stats & Preferences */}
-          <div className="space-y-6">
-            {/* Stats Card */}
-            <div className="bg-white rounded-2xl shadow-lg p-6">
-              <h3 className="text-xl font-semibold text-gray-800 mb-4">Your Journey</h3>
-              <div className="space-y-4">
-                <div className="text-center p-4 bg-gradient-to-r from-purple-100 to-pink-100 rounded-lg">
-                  <div className="text-2xl font-bold text-purple-600">
-                    {profile?.stats?.totalEntries || 0}
-                  </div>
-                  <div className="text-sm text-gray-600">Total Entries</div>
-                </div>
-                <div className="text-center p-4 bg-gradient-to-r from-blue-100 to-cyan-100 rounded-lg">
-                  <div className="text-2xl font-bold text-blue-600">
-                    {profile?.stats?.currentStreak || 0}
-                  </div>
-                  <div className="text-sm text-gray-600">Current Streak</div>
-                </div>
-                <div className="text-center p-4 bg-gradient-to-r from-green-100 to-emerald-100 rounded-lg">
-                  <div className="text-2xl font-bold text-green-600">
-                    {profile?.stats?.longestStreak || 0}
-                  </div>
-                  <div className="text-sm text-gray-600">Longest Streak</div>
-                </div>
-              </div>
-            </div>
-
-            {/* Preferences Card */}
-            <div className="bg-white rounded-2xl shadow-lg p-6">
-              <h3 className="text-xl font-semibold text-gray-800 mb-4">Preferences</h3>
-              <div className="space-y-4">
-                <label className="flex items-center justify-between">
-                  <span className="text-gray-700">Journal Reminders</span>
-                  <input
-                    type="checkbox"
-                    checked={profile?.preferences?.journalReminders || false}
-                    onChange={(e) => {
-                      const updatedPreferences = {
-                        ...profile?.preferences,
-                        journalReminders: e.target.checked
-                      };
-                      handleSaveProfile({ preferences: updatedPreferences });
-                    }}
-                    className="w-4 h-4 text-purple-600 rounded focus:ring-purple-500"
-                  />
-                </label>
-                <label className="flex items-center justify-between">
-                  <span className="text-gray-700">Daily Insights</span>
-                  <input
-                    type="checkbox"
-                    checked={profile?.preferences?.dailyInsights || false}
-                    onChange={(e) => {
-                      const updatedPreferences = {
-                        ...profile?.preferences,
-                        dailyInsights: e.target.checked
-                      };
-                      handleSaveProfile({ preferences: updatedPreferences });
-                    }}
-                    className="w-4 h-4 text-purple-600 rounded focus:ring-purple-500"
-                  />
-                </label>
-                <label className="flex items-center justify-between">
-                  <span className="text-gray-700">Weekly Reports</span>
-                  <input
-                    type="checkbox"
-                    checked={profile?.preferences?.weeklyReports || false}
-                    onChange={(e) => {
-                      const updatedPreferences = {
-                        ...profile?.preferences,
-                        weeklyReports: e.target.checked
-                      };
-                      handleSaveProfile({ preferences: updatedPreferences });
-                    }}
-                    className="w-4 h-4 text-purple-600 rounded focus:ring-purple-500"
-                  />
-                </label>
-              </div>
-            </div>
+              );
+            })}
           </div>
         </div>
       </div>
-    </div>
-  );
-}
 
-// Profile Display Component
-function ProfileDisplay({ profile }: { profile: UserProfile | null }) {
-  return (
-    <div className="space-y-4">
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
-        <p className="text-lg text-gray-900">{profile?.name || 'Not set'}</p>
-      </div>
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-        <p className="text-lg text-gray-900">{profile?.email || 'Not set'}</p>
-      </div>
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Music Platform</label>
-        <p className="text-lg text-gray-900">{profile?.musicPlatform || 'Not set'}</p>
-      </div>
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Member Since</label>
-        <p className="text-lg text-gray-900">
-          {profile?.joinDate ? new Date(profile.joinDate).toLocaleDateString() : 'Not available'}
-        </p>
+      {/* Content */}
+      <div className="pb-6">
+        {renderTabContent()}
       </div>
     </div>
   );
 }
 
-// Edit Profile Form Component
-function EditProfileForm({ 
-  profile, 
-  onSave, 
-  onCancel 
-}: { 
-  profile: UserProfile | null;
-  onSave: (profile: Partial<UserProfile>) => void;
-  onCancel: () => void;
-}) {
-  const [formData, setFormData] = useState({
-    name: profile?.name || '',
-    musicPlatform: profile?.musicPlatform || ''
-  });
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    onSave({
-      name: formData.name,
-      musicPlatform: formData.musicPlatform
-    });
-  };
-
-  return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
-        <input
-          type="text"
-          value={formData.name}
-          onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-          className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-        />
-      </div>
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Music Platform</label>
-        <select
-          value={formData.musicPlatform}
-          onChange={(e) => setFormData({ ...formData, musicPlatform: e.target.value })}
-          className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-        >
-          <option value="">Select a platform</option>
-          <option value="spotify">Spotify</option>
-          <option value="apple-music">Apple Music</option>
-          <option value="youtube-music">YouTube Music</option>
-          <option value="amazon-music">Amazon Music</option>
-        </select>
-      </div>
-      <div className="flex space-x-4">
-        <button
-          type="submit"
-          className="px-6 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-colors"
-        >
-          Save Changes
-        </button>
-        <button
-          type="button"
-          onClick={onCancel}
-          className="px-6 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition-colors"
-        >
-          Cancel
-        </button>
-      </div>
-    </form>
-  );
-}
-
-export default withAuth(ProfilePage);
+export default withAuth(ProfilePageComponent);

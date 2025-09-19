@@ -161,11 +161,10 @@ const VoiceRecorder = ({ onRecordingComplete }: { onRecordingComplete: (audioBlo
     <div className="flex items-center gap-3">
       <button
         onClick={isRecording ? stopRecording : startRecording}
-        className={`flex items-center gap-2 px-4 py-2 rounded-xl transition-all duration-300 ${
-          isRecording
+        className={`flex items-center gap-2 px-4 py-2 rounded-xl transition-all duration-300 ${isRecording
             ? 'bg-red-500 text-white shadow-lg'
             : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-        }`}
+          }`}
       >
         {isRecording ? <MicOff size={18} /> : <Mic size={18} />}
         {isRecording ? 'Stop' : 'Record'}
@@ -193,17 +192,16 @@ const MoodSelector = ({ selectedMood, onMoodSelect }: {
           <button
             key={mood.name}
             onClick={() => onMoodSelect(mood.name)}
-            className={`flex flex-col items-center gap-2 p-3 rounded-xl transition-all duration-300 ${
-              selectedMood === mood.name
+            className={`flex flex-col items-center gap-2 p-3 rounded-xl transition-all duration-300 ${selectedMood === mood.name
                 ? 'bg-white shadow-lg border-2 scale-105'
                 : 'bg-gray-50 hover:bg-gray-100 border-2 border-transparent'
-            }`}
+              }`}
             style={{
               borderColor: selectedMood === mood.name ? mood.color : 'transparent'
             }}
           >
-            <IconComponent 
-              size={24} 
+            <IconComponent
+              size={24}
               style={{ color: selectedMood === mood.name ? mood.color : '#6B7280' }}
             />
             <span className="text-xs text-gray-600 capitalize">{mood.name}</span>
@@ -218,42 +216,6 @@ const MoodSelector = ({ selectedMood, onMoodSelect }: {
         </p>
       </div>
     )}
-  </div>
-);
-
-const ThemeSelector = ({ selectedTheme, onThemeSelect }: {
-  selectedTheme: string;
-  onThemeSelect: (theme: string) => void;
-}) => (
-  <div className="space-y-3">
-    <h3 className="font-medium text-gray-800 flex items-center gap-2">
-      <Palette size={18} />
-      Choose your theme
-    </h3>
-    <div className="grid grid-cols-2 gap-3">
-      {themes.map((theme) => (
-        <button
-          key={theme.name}
-          onClick={() => onThemeSelect(theme.name)}
-          className={`relative h-16 rounded-xl overflow-hidden transition-all duration-300 ${
-            selectedTheme === theme.name
-              ? 'ring-2 ring-purple-500 ring-offset-2 scale-105'
-              : 'hover:scale-102'
-          }`}
-          style={{ background: theme.colors.background }}
-        >
-          <div 
-            className="absolute inset-0"
-            style={{ background: theme.pattern }}
-          />
-          <div className="absolute inset-0 flex items-center justify-center">
-            <span className="text-white font-medium text-sm drop-shadow-lg">
-              {theme.name}
-            </span>
-          </div>
-        </button>
-      ))}
-    </div>
   </div>
 );
 
@@ -357,6 +319,9 @@ function JournalPageComponent() {
   const [isSaving, setIsSaving] = useState(false);
   const [wordCount, setWordCount] = useState(0);
   const [weather, setWeather] = useState<string>('sunny');
+  const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
+  const [error, setError] = useState<string>('');
+  const [showSuccess, setShowSuccess] = useState(false);
 
   useEffect(() => {
     // Get current weather (mock implementation)
@@ -378,77 +343,109 @@ function JournalPageComponent() {
   };
 
   const handleRecordingComplete = (audioBlob: Blob) => {
-    // Handle audio recording - could convert to text or store as audio
-    console.log('Audio recorded:', audioBlob);
+    setAudioBlob(audioBlob);
   };
 
   const handleSave = async () => {
-    if (!entry.content?.trim() || !entry.mood) {
-      alert('Please write something and select a mood before saving.');
+    // Check if at least one field has content
+    const hasTitle = entry.title?.trim().length > 0;
+    const hasContent = entry.content?.trim().length > 0;
+    const hasMood = entry.mood !== '';
+    const hasPhoto = photo !== null;
+    const hasAudio = audioBlob !== null;
+
+    // Require at least one piece of content
+    if (!hasTitle && !hasContent && !hasMood && !hasPhoto && !hasAudio) {
+      setError('Please add at least some content to your journal entry.');
       return;
     }
 
     setIsSaving(true);
+    setError('');
+
     try {
-      const entryData = {
-        title: entry.title || '',
-        content: entry.content,
-        mood: entry.mood,
-        theme: entry.theme || 'Sunrise',
-        weather,
-        tags: entry.tags || []
+      const journalEntry = {
+        id: Date.now().toString(),
+        title: entry.title?.trim() || `Journal Entry - ${new Date().toLocaleDateString()}`, // Auto-generate title if empty
+        content: entry.content?.trim() || '', // Allow empty content
+        mood: entry.mood || 'neutral', // Default to neutral if no mood selected
+        createdAt: new Date().toISOString(),
+        date: new Date().toISOString(),
+        photo: photo ? await convertPhotoToBase64(photo) : null,
+        audioBlob: audioBlob ? await convertAudioToBase64(audioBlob) : null,
+        wordCount: entry.content?.trim().split(' ').filter(word => word.length > 0).length || 0
       };
 
-      const response = await fetch('/api/journals', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(entryData),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to save journal entry');
-      }
-
-      const savedEntry = await response.json();
-      console.log('Entry saved:', savedEntry);
+      // Get existing journals from localStorage
+      const existingJournals = localStorage.getItem('janya-journals');
+      const journals = existingJournals ? JSON.parse(existingJournals) : [];
       
-      // Reset form
-      setEntry({
-        title: '',
-        content: '',
-        mood: '',
-        theme: 'Sunrise',
-        date: new Date(),
-        tags: []
-      });
-      setPhoto(null);
-      setPhotoPreview('');
+      // Add new journal entry
+      journals.unshift(journalEntry); // Add to beginning of array
       
-      alert('Journal entry saved successfully!');
+      // Save back to localStorage
+      localStorage.setItem('janya-journals', JSON.stringify(journals));
+
+      // Show success message
+      setShowSuccess(true);
+      
+      // Reset form after short delay
+      setTimeout(() => {
+        setEntry({
+          title: '',
+          content: '',
+          mood: '',
+          theme: 'Sunrise',
+          date: new Date(),
+          tags: []
+        });
+        setPhoto(null);
+        setAudioBlob(null);
+        setPhotoPreview('');
+        setShowSuccess(false);
+      }, 2000);
+
     } catch (error) {
-      console.error('Error saving entry:', error);
-      alert('Failed to save journal entry. Please try again.');
+      console.error('Error saving journal:', error);
+      setError('Failed to save journal entry. Please try again.');
     } finally {
       setIsSaving(false);
     }
+  };
+
+  // Helper function to convert photo to base64
+  const convertPhotoToBase64 = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  };
+
+  // Helper function to convert audio to base64
+  const convertAudioToBase64 = (blob: Blob): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = reject;
+      reader.readAsDataURL(blob);
+    });
   };
 
   const selectedTheme = themes.find(t => t.name === entry.theme) || themes[0];
   const WeatherIcon = weatherIcons[weather as keyof typeof weatherIcons];
 
   return (
-    <div>
+    <div style={{ backgroundColor: 'var(--md-sys-color-background)' }}>
       <Navigation />
-      <div className="min-h-screen pb-24" style={{ background: selectedTheme.colors.background }}>
-        <div 
-          className="absolute inset-0 pointer-events-none"
-          style={{ background: selectedTheme.pattern }}
-        />
-        
+      <div className="min-h-screen" style={{
+        background: selectedTheme.colors.background,
+        backgroundImage: selectedTheme.pattern
+      }}>
+
         {/* Header */}
-        <div className="relative z-10 sticky top-0 bg-white bg-opacity-95 backdrop-blur-lg border-b border-gray-200">
+        {/* <div className="relative z-10 sticky top-0 bg-white bg-opacity-95 backdrop-blur-lg border-b border-gray-200">
           <div className="max-w-md mx-auto px-4 py-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
@@ -456,10 +453,10 @@ function JournalPageComponent() {
                 <div>
                   <h1 className="font-bold text-gray-800">New Entry</h1>
                   <div className="flex items-center gap-2 text-sm text-gray-600">
-                    <span>{new Date().toLocaleDateString('en-US', { 
-                      weekday: 'long', 
-                      month: 'long', 
-                      day: 'numeric' 
+                    <span>{new Date().toLocaleDateString('en-US', {
+                      weekday: 'long',
+                      month: 'long',
+                      day: 'numeric'
                     })}</span>
                     <WeatherIcon size={14} />
                   </div>
@@ -468,26 +465,26 @@ function JournalPageComponent() {
               <div className="flex items-center gap-2">
                 <Clock size={16} className="text-gray-500" />
                 <span className="text-sm text-gray-600">
-                  {new Date().toLocaleTimeString('en-US', { 
-                    hour: '2-digit', 
-                    minute: '2-digit' 
+                  {new Date().toLocaleTimeString('en-US', {
+                    hour: '2-digit',
+                    minute: '2-digit'
                   })}
                 </span>
               </div>
             </div>
           </div>
-        </div>
+        </div> */}
 
         {/* Content */}
-        <div className="relative z-10 max-w-md mx-auto px-4 py-6 space-y-6">
+        <div className="relative z-10 max-w-md mx-auto px-4 py-6 space-y-6 pb-28">
           {/* Title Input */}
           <div className="bg-white bg-opacity-90 backdrop-blur-sm rounded-2xl p-4 shadow-lg">
             <input
               type="text"
               placeholder="What's on your mind today?"
-              value={entry.title || ''}
+              value={entry.title}
               onChange={(e) => setEntry(prev => ({ ...prev, title: e.target.value }))}
-              className="w-full text-lg font-medium bg-transparent border-none outline-none placeholder-gray-500"
+              className="w-full text-lg font-medium bg-transparent border-none outline-none text-gray-600"
             />
           </div>
 
@@ -496,14 +493,6 @@ function JournalPageComponent() {
             <MoodSelector
               selectedMood={entry.mood || ''}
               onMoodSelect={(mood) => setEntry(prev => ({ ...prev, mood }))}
-            />
-          </div>
-
-          {/* Theme Selector */}
-          <div className="bg-white bg-opacity-90 backdrop-blur-sm rounded-2xl p-4 shadow-lg">
-            <ThemeSelector
-              selectedTheme={entry.theme || 'Sunrise'}
-              onThemeSelect={(theme) => setEntry(prev => ({ ...prev, theme }))}
             />
           </div>
 
@@ -516,7 +505,7 @@ function JournalPageComponent() {
             </div>
             <textarea
               placeholder="Write about your day, your thoughts, your dreams..."
-              value={entry.content || ''}
+              value={entry.content}
               onChange={(e) => setEntry(prev => ({ ...prev, content: e.target.value }))}
               className="w-full h-40 bg-transparent border-none outline-none resize-none placeholder-gray-500 text-gray-800 leading-relaxed"
             />
@@ -528,7 +517,7 @@ function JournalPageComponent() {
               <PhotoUpload onPhotoSelect={handlePhotoSelect} />
               <VoiceRecorder onRecordingComplete={handleRecordingComplete} />
             </div>
-            
+
             {photoPreview && (
               <div className="mt-4">
                 <img
@@ -548,12 +537,11 @@ function JournalPageComponent() {
           {/* Save Button */}
           <button
             onClick={handleSave}
-            disabled={isSaving || !entry.content?.trim() || !entry.mood}
-            className={`w-full py-4 rounded-2xl font-medium transition-all duration-300 ${
-              isSaving || !entry.content?.trim() || !entry.mood
+            disabled={isSaving}
+            className={`w-full py-4 rounded-2xl font-medium transition-all duration-300 ${isSaving
                 ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
                 : 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg hover:shadow-xl transform hover:scale-105'
-            }`}
+              }`}
           >
             {isSaving ? (
               <div className="flex items-center justify-center gap-2">
@@ -568,6 +556,28 @@ function JournalPageComponent() {
             )}
           </button>
         </div>
+
+        {/* Success Message */}
+        {showSuccess && (
+          <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50">
+            <div className="flex items-center gap-2">
+              <div className="w-5 h-5 bg-white rounded-full flex items-center justify-center">
+                <span className="text-green-500 text-sm">✓</span>
+              </div>
+              Journal saved successfully!
+            </div>
+          </div>
+        )}
+
+        {/* Error Message */}
+        {error && (
+          <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-red-500 text-white px-6 py-3 rounded-lg shadow-lg z-50">
+            <div className="flex items-center gap-2">
+              <span className="text-lg">⚠️</span>
+              {error}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

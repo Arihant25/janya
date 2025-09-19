@@ -3,7 +3,7 @@
 import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
-import JanyaLandingPage from "./components/JanyaLandingPage";
+import JanyaLandingPage from "../components/landing/Main";
 
 export default function Home() {
   const { user, isLoading } = useAuth();
