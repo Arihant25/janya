@@ -1,9 +1,11 @@
 'use client';
 
 import React, { useEffect, useRef } from 'react';
+import { useRouter } from 'next/navigation';
 
 export default function JanyaLandingPage() {
     const containerRef = useRef<HTMLDivElement>(null);
+    const router = useRouter();
 
     useEffect(() => {
         // Create Material Web elements dynamically to avoid TypeScript issues
@@ -102,6 +104,10 @@ export default function JanyaLandingPage() {
         }
     ];
 
+    const handleStartJournalling = () => {
+        router.push('/journal');
+    };
+
     return (
         <div ref={containerRef} className="min-h-screen bg-surface">
             {/* Hero Section */}
@@ -119,6 +125,7 @@ export default function JanyaLandingPage() {
                             <button
                                 data-material="filled-button"
                                 className="primary-button"
+                                onClick={handleStartJournalling}
                             >
                                 Start Journalling Today
                             </button>

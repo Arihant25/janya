@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import { Roboto } from "next/font/google";
 import "./globals.css";
+import "./janya-styles.css";
 import MaterialWebProvider from "./components/MaterialWebProvider";
+import { AuthProvider } from "@/contexts/AuthContext";
 
 const roboto = Roboto({
   weight: ['400', '500', '700'],
@@ -21,11 +23,16 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
+      <head>
+        <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
+      </head>
       <body
         className={`${roboto.variable} antialiased`}
       >
         <MaterialWebProvider>
-          {children}
+          <AuthProvider>
+            {children}
+          </AuthProvider>
         </MaterialWebProvider>
       </body>
     </html>
