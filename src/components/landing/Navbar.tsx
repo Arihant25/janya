@@ -95,18 +95,6 @@ export default function Navbar({ onGetStarted }: NavbarProps) {
                             fontSize: '1rem',
                             transition: 'color 0.3s ease'
                         }}>How it works</a>
-                        <a
-                            href="#pricing"
-                            style={{
-                                textDecoration: 'none',
-                                color: textColor,
-                                fontSize: '1rem',
-                                transition: 'color 0.3s ease'
-                            }}
-                            id="pricing-link"
-                        >
-                            Pricing
-                        </a>
                         <button
                             style={{
                                 backgroundColor: scrolled ? 'var(--janya-primary)' : 'var(--janya-text-primary)',
@@ -252,21 +240,6 @@ export default function Navbar({ onGetStarted }: NavbarProps) {
                             transition: 'all 0.3s ease',
                             cursor: 'pointer'
                         }} onClick={toggleMobileMenu}>How it works</a>
-                        <a
-                            href="#pricing"
-                            style={{
-                                textDecoration: 'none',
-                                color: textColor,
-                                fontSize: '1.1rem',
-                                padding: '0.75rem 0',
-                                borderBottom: `1px solid ${textColor}20`,
-                                transition: 'all 0.3s ease',
-                                cursor: 'pointer'
-                            }}
-                            onClick={toggleMobileMenu}
-                        >
-                            Pricing
-                        </a>
                         <button
                             style={{
                                 backgroundColor: scrolled ? 'var(--janya-primary)' : 'var(--janya-text-primary)',

@@ -117,7 +117,7 @@ const Footer: React.FC = () => (
                         Product
                     </h4>
                     <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-md)" }}>
-                        {["Features", "Pricing", "Demo", "Updates"].map((link) => (
+                        {["Features", "Updates"].map((link) => (
                             <a
                                 key={link}
                                 href={`#${link.toLowerCase()}`}
