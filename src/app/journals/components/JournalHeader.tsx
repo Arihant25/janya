@@ -1,14 +1,14 @@
 'use client';
 
-import { Search, Grid, List, ArrowLeft } from 'lucide-react';
+import { Search, Grid, List, ArrowLeft, Grid3X3 } from 'lucide-react';
 
 interface JournalHeaderProps {
     title: string;
     subtitle: string;
     searchTerm: string;
     onSearchChange: (term: string) => void;
-    viewMode: 'folders' | 'list';
-    onViewModeChange: (mode: 'folders' | 'list') => void;
+    viewMode: 'folders' | 'list' | 'grid';
+    onViewModeChange: (mode: 'folders' | 'list' | 'grid') => void;
     showBack?: boolean;
     onBack?: () => void;
 }
@@ -53,7 +53,7 @@ export default function JournalHeader({
                                         : 'hover:bg-gray-200'
                                     }`}
                             >
-                                <Grid size={18} className={viewMode === 'folders' ? 'text-gray-800' : 'text-gray-500'} />
+                                <Grid size={16} className={viewMode === 'folders' ? 'text-gray-800' : 'text-gray-500'} />
                             </button>
                             <button
                                 onClick={() => onViewModeChange('list')}
@@ -62,7 +62,16 @@ export default function JournalHeader({
                                         : 'hover:bg-gray-200'
                                     }`}
                             >
-                                <List size={18} className={viewMode === 'list' ? 'text-gray-800' : 'text-gray-500'} />
+                                <List size={16} className={viewMode === 'list' ? 'text-gray-800' : 'text-gray-500'} />
+                            </button>
+                            <button
+                                onClick={() => onViewModeChange('grid')}
+                                className={`p-2 rounded-full transition-all duration-300 ${viewMode === 'grid'
+                                        ? 'bg-white shadow-sm scale-105'
+                                        : 'hover:bg-gray-200'
+                                    }`}
+                            >
+                                <Grid3X3 size={16} className={viewMode === 'grid' ? 'text-gray-800' : 'text-gray-500'} />
                             </button>
                         </div>
                     </div>

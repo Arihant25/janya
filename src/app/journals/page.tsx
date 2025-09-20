@@ -6,6 +6,7 @@ import withAuth from '@/components/withAuth';
 import Navigation from '@/app/components/Navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
+import { apiService } from '@/lib/api';
 
 // Components
 import JournalHeader from './components/JournalHeader';
@@ -13,6 +14,7 @@ import QuickStats from './components/QuickStats';
 import MoodFilter from './components/MoodFilter';
 import FolderGrid from './components/FolderGrid';
 import JournalList from './components/JournalList';
+import JournalGrid from './components/JournalGrid';
 import CreateButton from './components/CreateButton';
 
 // Journal folders based on themes/moods
@@ -74,7 +76,7 @@ function JournalsPageComponent() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterMood, setFilterMood] = useState<'all' | Journal['mood']>('all');
-  const [viewMode, setViewMode] = useState<'folders' | 'list'>('folders');
+  const [viewMode, setViewMode] = useState<'folders' | 'list' | 'grid'>('folders');
   const [selectedFolder, setSelectedFolder] = useState<JournalFolder | null>(null);
 
   useEffect(() => {
@@ -86,11 +88,8 @@ function JournalsPageComponent() {
       setLoading(true);
 
       // Fetch from API
-      const response = await fetch('/api/journals');
-
-      if (response.ok) {
-        const data = await response.json();
-        const formattedJournals = data.entries.map((journal: any) => ({
+      const data = await apiService.getJournalEntries();
+      const formattedJournals = data.entries.map((journal: any) => ({
           id: journal.id,
           title: journal.title,
           date: journal.date,
@@ -109,36 +108,6 @@ function JournalsPageComponent() {
           aiInsights: journal.aiInsights
         }));
         setJournals(formattedJournals);
-      } else {
-        // Fallback to localStorage for backward compatibility
-        const storedJournals = localStorage.getItem('janya-journals');
-        if (storedJournals) {
-          const parsedJournals = JSON.parse(storedJournals);
-          const formattedJournals = parsedJournals.map((journal: any) => ({
-            id: journal.id,
-            title: journal.title,
-            date: journal.createdAt || journal.date,
-            time: new Date(journal.createdAt || journal.date).toLocaleTimeString('en-US', {
-              hour: '2-digit',
-              minute: '2-digit'
-            }),
-            mood: journal.mood || 'thoughtful',
-            preview: journal.content?.substring(0, 120) + '...' || 'No preview available',
-            wordCount: journal.content?.split(' ').length || 0,
-            abstractArt: MOOD_GRADIENTS[journal.mood] || MOOD_GRADIENTS.thoughtful,
-            theme: journal.mood || 'thoughtful',
-            content: journal.content,
-            photo: journal.photo,
-            audioRecording: journal.audioBlob, // Note: different field name in localStorage
-            weather: journal.weather,
-            location: journal.location,
-            tags: journal.tags || []
-          }));
-          setJournals(formattedJournals);
-        } else {
-          setJournals([]);
-        }
-      }
     } catch (error) {
       console.error('Error fetching journals:', error);
 
@@ -205,8 +174,7 @@ function JournalsPageComponent() {
   };
 
   const handleJournalClick = (journal: Journal) => {
-    console.log('Opening journal:', journal.id);
-    // Navigate to journal detail page
+    router.push(`/journals/${journal.id}`);
   };
 
   const handleNewJournal = () => {
@@ -269,6 +237,11 @@ function JournalsPageComponent() {
         <FolderGrid
           folders={folders}
           onFolderClick={handleFolderClick}
+        />
+      ) : viewMode === 'grid' ? (
+        <JournalGrid
+          journals={selectedFolder ? selectedFolder.journals : filteredJournals}
+          onJournalClick={handleJournalClick}
         />
       ) : (
         <JournalList

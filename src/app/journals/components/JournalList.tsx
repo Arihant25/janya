@@ -46,52 +46,21 @@ const JournalListItem = ({ journal, onClick }: { journal: Journal; onClick: (jou
                         {journal.preview}
                     </p>
 
-                    {/* Media Indicators */}
+                    {/* Media Tags */}
                     {(journal.photo || journal.audioRecording) && (
                         <div className="flex items-center gap-2 mb-3">
                             {journal.photo && (
-                                <div className="flex items-center gap-1 text-xs text-blue-600 bg-blue-50 px-2 py-1 rounded-lg">
+                                <div className="flex items-center gap-1 text-xs text-blue-600 bg-blue-50 px-2 py-1 rounded-full">
                                     <Image size={12} />
-                                    <span>Photo</span>
+                                    <span>Image</span>
                                 </div>
                             )}
                             {journal.audioRecording && (
-                                <div className="flex items-center gap-1 text-xs text-purple-600 bg-purple-50 px-2 py-1 rounded-lg">
+                                <div className="flex items-center gap-1 text-xs text-purple-600 bg-purple-50 px-2 py-1 rounded-full">
                                     <Mic size={12} />
                                     <span>Audio</span>
                                 </div>
                             )}
-                        </div>
-                    )}
-
-                    {/* Photo Preview */}
-                    {journal.photo && (
-                        <div className="mb-3">
-                            <img
-                                src={journal.photo}
-                                alt="Journal entry photo"
-                                className="w-full h-32 object-cover rounded-lg"
-                                onError={(e) => {
-                                    // Hide image if it fails to load
-                                    e.currentTarget.style.display = 'none';
-                                }}
-                            />
-                        </div>
-                    )}
-
-                    {/* Audio Player */}
-                    {journal.audioRecording && (
-                        <div className="mb-3">
-                            <audio
-                                controls
-                                className="w-full h-8"
-                                preload="metadata"
-                            >
-                                <source src={journal.audioRecording} type="audio/webm" />
-                                <source src={journal.audioRecording} type="audio/mp3" />
-                                <source src={journal.audioRecording} type="audio/wav" />
-                                Your browser does not support the audio element.
-                            </audio>
                         </div>
                     )}
 

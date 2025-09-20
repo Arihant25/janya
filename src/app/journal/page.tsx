@@ -1,10 +1,12 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { Camera, Save, Mic, MicOff, Palette, Calendar, Clock, Heart, Smile, Frown, Meh, Angry, Zap, Coffee, Music, Image as ImageIcon, Type, Sparkles, Sun, Moon, Cloud, CloudRain } from 'lucide-react';
 import withAuth from '@/components/withAuth';
 import Navigation from '@/app/components/Navigation';
 import { useAuth } from '@/contexts/AuthContext';
+import { apiService } from '@/lib/api';
 
 interface JournalEntry {
   id: string;
@@ -306,6 +308,10 @@ const AIInsights = ({ content, mood }: { content: string; mood: string }) => {
 
 function JournalPageComponent() {
   const { user } = useAuth();
+  const searchParams = useSearchParams();
+  const editId = searchParams.get('edit');
+  const isEditing = Boolean(editId);
+
   const [entry, setEntry] = useState<Partial<JournalEntry>>({
     title: '',
     content: '',
@@ -317,6 +323,7 @@ function JournalPageComponent() {
   const [photo, setPhoto] = useState<File | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string>('');
   const [isSaving, setIsSaving] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [wordCount, setWordCount] = useState(0);
   const [weather, setWeather] = useState<string>('sunny');
   const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
@@ -327,11 +334,58 @@ function JournalPageComponent() {
     // Get current weather (mock implementation)
     const weathers = ['sunny', 'cloudy', 'rainy', 'clear'];
     setWeather(weathers[Math.floor(Math.random() * weathers.length)]);
-  }, []);
+
+    // Load entry for editing if editId is present
+    if (isEditing && editId) {
+      loadEntryForEditing(editId);
+    }
+  }, [isEditing, editId]);
 
   useEffect(() => {
     setWordCount(entry.content?.split(' ').filter(word => word.length > 0).length || 0);
   }, [entry.content]);
+
+  const loadEntryForEditing = async (entryId: string) => {
+    setLoading(true);
+    try {
+      const data = await apiService.getJournalEntry(entryId);
+      const journalEntry = data.entry;
+
+      setEntry({
+        title: journalEntry.title,
+        content: journalEntry.content,
+        mood: journalEntry.mood,
+        theme: journalEntry.theme || 'Sunrise',
+        date: new Date(journalEntry.date),
+        tags: journalEntry.tags || [],
+        location: journalEntry.location
+      });
+
+      if (journalEntry.photo) {
+        setPhotoPreview(journalEntry.photo);
+      }
+
+      if (journalEntry.audioRecording) {
+        // Convert base64 back to blob for editing
+        try {
+          const response = await fetch(journalEntry.audioRecording);
+          const blob = await response.blob();
+          setAudioBlob(blob);
+        } catch (err) {
+          console.error('Error loading audio for editing:', err);
+        }
+      }
+
+      if (journalEntry.weather) {
+        setWeather(journalEntry.weather);
+      }
+    } catch (error) {
+      console.error('Error loading entry for editing:', error);
+      setError('Failed to load journal entry for editing');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handlePhotoSelect = (file: File) => {
     setPhoto(file);
@@ -376,39 +430,37 @@ function JournalPageComponent() {
       };
 
       // Save to MongoDB via API
-      const response = await fetch('/api/journals', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(journalData),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to save journal entry');
+      let result;
+      if (isEditing && editId) {
+        result = await apiService.updateJournalEntry(editId, journalData);
+      } else {
+        result = await apiService.createJournalEntry(journalData);
       }
-
-      const result = await response.json();
 
       // Show success message
       setShowSuccess(true);
 
-      // Reset form after short delay
+      // Reset form after short delay or navigate back if editing
       setTimeout(() => {
-        setEntry({
-          title: '',
-          content: '',
-          mood: '',
-          theme: 'Sunrise',
-          date: new Date(),
-          tags: []
-        });
-        setPhoto(null);
-        setAudioBlob(null);
-        setPhotoPreview('');
-        setShowSuccess(false);
-      }, 2000);
+        if (isEditing) {
+          // Navigate back to the journal detail page
+          window.history.back();
+        } else {
+          // Reset form for new entry
+          setEntry({
+            title: '',
+            content: '',
+            mood: '',
+            theme: 'Sunrise',
+            date: new Date(),
+            tags: []
+          });
+          setPhoto(null);
+          setAudioBlob(null);
+          setPhotoPreview('');
+          setShowSuccess(false);
+        }
+      }, 1500);
 
     } catch (error) {
       console.error('Error saving journal:', error);
@@ -440,6 +492,26 @@ function JournalPageComponent() {
 
   const selectedTheme = themes.find(t => t.name === entry.theme) || themes[0];
   const WeatherIcon = weatherIcons[weather as keyof typeof weatherIcons];
+
+  // Show loading state
+  if (loading) {
+    return (
+      <div style={{ backgroundColor: 'var(--md-sys-color-background)' }}>
+        <Navigation />
+        <div className="min-h-screen flex items-center justify-center" style={{
+          background: selectedTheme.colors.background,
+          backgroundImage: selectedTheme.pattern
+        }}>
+          <div className="text-center">
+            <div className="w-12 h-12 mx-auto mb-4 rounded-full animate-spin bg-gradient-to-r from-purple-500 to-pink-500">
+              <div className="w-full h-full rounded-full border-4 border-transparent border-t-white" />
+            </div>
+            <p className="text-gray-600">Loading journal entry...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div style={{ backgroundColor: 'var(--md-sys-color-background)' }}>
@@ -486,7 +558,7 @@ function JournalPageComponent() {
           <div className="bg-white bg-opacity-90 backdrop-blur-sm rounded-2xl p-4 shadow-lg">
             <input
               type="text"
-              placeholder="What's on your mind today?"
+              placeholder={isEditing ? "Edit your journal title..." : "What's on your mind today?"}
               value={entry.title}
               onChange={(e) => setEntry(prev => ({ ...prev, title: e.target.value }))}
               className="w-full text-lg font-medium bg-transparent border-none outline-none text-gray-600"
@@ -556,7 +628,7 @@ function JournalPageComponent() {
             ) : (
               <div className="flex items-center justify-center gap-2">
                 <Save size={20} />
-                Save Entry
+                {isEditing ? 'Update Entry' : 'Save Entry'}
               </div>
             )}
           </button>

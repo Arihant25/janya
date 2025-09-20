@@ -12,11 +12,16 @@ class ApiService {
     const headers: any = {
       'Content-Type': 'application/json',
     };
-    
+
+    // Always get the latest token from localStorage
+    if (typeof window !== 'undefined') {
+      this.token = localStorage.getItem('auth_token');
+    }
+
     if (this.token) {
       headers.Authorization = `Bearer ${this.token}`;
     }
-    
+
     return headers;
   }
 
@@ -85,16 +90,45 @@ class ApiService {
     return this.request('/journals');
   }
 
+  async getJournalEntry(id: string) {
+    return this.request(`/journals/${id}`);
+  }
+
   async createJournalEntry(entry: {
     title: string;
     content: string;
     mood: string;
     tags?: string[];
     photo?: string;
+    audioRecording?: string;
+    weather?: string;
+    location?: string;
   }) {
     return this.request('/journals', {
       method: 'POST',
       body: JSON.stringify(entry),
+    });
+  }
+
+  async updateJournalEntry(id: string, entry: {
+    title: string;
+    content: string;
+    mood: string;
+    tags?: string[];
+    photo?: string;
+    audioRecording?: string;
+    weather?: string;
+    location?: string;
+  }) {
+    return this.request(`/journals/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify(entry),
+    });
+  }
+
+  async deleteJournalEntry(id: string) {
+    return this.request(`/journals/${id}`, {
+      method: 'DELETE',
     });
   }
 
@@ -103,11 +137,19 @@ class ApiService {
     return this.request('/chat');
   }
 
-  async sendChatMessage(message: string) {
-    return this.request('/chat', {
+  async sendChatMessage(message: string): Promise<ReadableStream<Uint8Array>> {
+    const url = `${this.baseUrl}/api/chat`;
+    const response = await fetch(url, {
       method: 'POST',
+      headers: this.getHeaders(),
       body: JSON.stringify({ message }),
     });
+
+    if (!response.ok) {
+      throw new Error('Failed to send message');
+    }
+
+    return response.body!;
   }
 
   // Recommendations
