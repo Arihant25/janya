@@ -3,7 +3,7 @@ export type MoodType = 'happy' | 'sad' | 'anxious' | 'excited' | 'calm' | 'thoug
 export type ThemeType = 'sunny' | 'contemplative' | 'stress' | 'adventure' | 'peaceful' | 'creative';
 
 export interface Journal {
-  id: number;
+  id: number | string;
   title: string;
   date: string;
   time: string;
@@ -12,6 +12,13 @@ export interface Journal {
   wordCount: number;
   abstractArt: string;
   theme: ThemeType;
+  content?: string;
+  photo?: string;
+  audioRecording?: string;
+  weather?: string;
+  location?: string;
+  tags?: string[];
+  aiInsights?: string;
 }
 
 export type Mood = 'happy' | 'sad' | 'anxious' | 'excited' | 'calm' | 'thoughtful' | 'inspired';

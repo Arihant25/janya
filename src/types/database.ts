@@ -22,11 +22,14 @@ export interface JournalEntry {
   userId: ObjectId;
   title: string;
   content: string;
-  mood: 'happy' | 'sad' | 'excited' | 'calm' | 'anxious' | 'angry' | 'thoughtful' | 'inspired';
+  mood: 'happy' | 'sad' | 'excited' | 'calm' | 'anxious' | 'angry' | 'thoughtful' | 'inspired' | 'neutral';
   tags: string[];
   theme: string;
   wordCount: number;
-  photo?: string; // URL to uploaded photo
+  photo?: string; // Base64 encoded photo or URL
+  audioRecording?: string; // Base64 encoded audio recording
+  weather?: string;
+  location?: string;
   aiAnalysis?: {
     sentiment: number;
     emotions: { [emotion: string]: number };

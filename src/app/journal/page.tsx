@@ -364,31 +364,36 @@ function JournalPageComponent() {
     setError('');
 
     try {
-      const journalEntry = {
-        id: Date.now().toString(),
-        title: entry.title?.trim() || `Journal Entry - ${new Date().toLocaleDateString()}`, // Auto-generate title if empty
-        content: entry.content?.trim() || '', // Allow empty content
-        mood: entry.mood || 'neutral', // Default to neutral if no mood selected
-        createdAt: new Date().toISOString(),
-        date: new Date().toISOString(),
+      const journalData = {
+        title: entry.title?.trim() || `Journal Entry - ${new Date().toLocaleDateString()}`,
+        content: entry.content?.trim() || '',
+        mood: entry.mood || 'neutral',
+        tags: entry.tags || [],
         photo: photo ? await convertPhotoToBase64(photo) : null,
-        audioBlob: audioBlob ? await convertAudioToBase64(audioBlob) : null,
-        wordCount: entry.content?.trim().split(' ').filter(word => word.length > 0).length || 0
+        audioRecording: audioBlob ? await convertAudioToBase64(audioBlob) : null,
+        weather: weather,
+        location: entry.location || null
       };
 
-      // Get existing journals from localStorage
-      const existingJournals = localStorage.getItem('janya-journals');
-      const journals = existingJournals ? JSON.parse(existingJournals) : [];
-      
-      // Add new journal entry
-      journals.unshift(journalEntry); // Add to beginning of array
-      
-      // Save back to localStorage
-      localStorage.setItem('janya-journals', JSON.stringify(journals));
+      // Save to MongoDB via API
+      const response = await fetch('/api/journals', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(journalData),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to save journal entry');
+      }
+
+      const result = await response.json();
 
       // Show success message
       setShowSuccess(true);
-      
+
       // Reset form after short delay
       setTimeout(() => {
         setEntry({
@@ -407,7 +412,7 @@ function JournalPageComponent() {
 
     } catch (error) {
       console.error('Error saving journal:', error);
-      setError('Failed to save journal entry. Please try again.');
+      setError(error.message || 'Failed to save journal entry. Please try again.');
     } finally {
       setIsSaving(false);
     }

@@ -84,34 +84,97 @@ function JournalsPageComponent() {
   const fetchJournals = async () => {
     try {
       setLoading(true);
-      // Try to get from localStorage first
-      const storedJournals = localStorage.getItem('janya-journals');
-      if (storedJournals) {
-        const parsedJournals = JSON.parse(storedJournals);
-        // Map stored journals to our interface
-        const formattedJournals = parsedJournals.map((journal: any) => ({
+
+      // Fetch from API
+      const response = await fetch('/api/journals');
+
+      if (response.ok) {
+        const data = await response.json();
+        const formattedJournals = data.entries.map((journal: any) => ({
           id: journal.id,
           title: journal.title,
-          date: journal.createdAt || journal.date,
-          time: new Date(journal.createdAt || journal.date).toLocaleTimeString('en-US', {
-            hour: '2-digit',
-            minute: '2-digit'
-          }),
+          date: journal.date,
+          time: journal.time,
           mood: journal.mood || 'thoughtful',
-          preview: journal.content?.substring(0, 120) + '...' || 'No preview available',
-          wordCount: journal.content?.split(' ').length || 0,
+          preview: journal.preview || 'No preview available',
+          wordCount: journal.wordCount || 0,
           abstractArt: MOOD_GRADIENTS[journal.mood] || MOOD_GRADIENTS.thoughtful,
           theme: journal.mood || 'thoughtful',
-          content: journal.content
+          content: journal.content,
+          photo: journal.photo,
+          audioRecording: journal.audioRecording,
+          weather: journal.weather,
+          location: journal.location,
+          tags: journal.tags || [],
+          aiInsights: journal.aiInsights
         }));
         setJournals(formattedJournals);
       } else {
-        // Fallback to mock data
-        setJournals([]);
+        // Fallback to localStorage for backward compatibility
+        const storedJournals = localStorage.getItem('janya-journals');
+        if (storedJournals) {
+          const parsedJournals = JSON.parse(storedJournals);
+          const formattedJournals = parsedJournals.map((journal: any) => ({
+            id: journal.id,
+            title: journal.title,
+            date: journal.createdAt || journal.date,
+            time: new Date(journal.createdAt || journal.date).toLocaleTimeString('en-US', {
+              hour: '2-digit',
+              minute: '2-digit'
+            }),
+            mood: journal.mood || 'thoughtful',
+            preview: journal.content?.substring(0, 120) + '...' || 'No preview available',
+            wordCount: journal.content?.split(' ').length || 0,
+            abstractArt: MOOD_GRADIENTS[journal.mood] || MOOD_GRADIENTS.thoughtful,
+            theme: journal.mood || 'thoughtful',
+            content: journal.content,
+            photo: journal.photo,
+            audioRecording: journal.audioBlob, // Note: different field name in localStorage
+            weather: journal.weather,
+            location: journal.location,
+            tags: journal.tags || []
+          }));
+          setJournals(formattedJournals);
+        } else {
+          setJournals([]);
+        }
       }
     } catch (error) {
       console.error('Error fetching journals:', error);
-      setJournals([]);
+
+      // Fallback to localStorage on API error
+      try {
+        const storedJournals = localStorage.getItem('janya-journals');
+        if (storedJournals) {
+          const parsedJournals = JSON.parse(storedJournals);
+          const formattedJournals = parsedJournals.map((journal: any) => ({
+            id: journal.id,
+            title: journal.title,
+            date: journal.createdAt || journal.date,
+            time: new Date(journal.createdAt || journal.date).toLocaleTimeString('en-US', {
+              hour: '2-digit',
+              minute: '2-digit'
+            }),
+            mood: journal.mood || 'thoughtful',
+            preview: journal.content?.substring(0, 120) + '...' || 'No preview available',
+            wordCount: journal.content?.split(' ').length || 0,
+            abstractArt: MOOD_GRADIENTS[journal.mood] || MOOD_GRADIENTS.thoughtful,
+            theme: journal.mood || 'thoughtful',
+            content: journal.content,
+            photo: journal.photo,
+            audioRecording: journal.audioBlob,
+            weather: journal.weather,
+            location: journal.location,
+            tags: journal.tags || []
+          }));
+          setJournals(formattedJournals);
+        } else {
+          setJournals([]);
+        }
+      } catch (localStorageError) {
+        console.error('Error reading from localStorage:', localStorageError);
+        setJournals([]);
+      }
     } finally {
       setLoading(false);
     }
