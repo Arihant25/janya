@@ -75,9 +75,9 @@ export default function RecommendationCard({
             onClick={() => onClick(recommendation)}
         >
             {/* Card Header - Always visible */}
-            <div className="flex items-center p-4">
+            <div className="flex items-center p-3 sm:p-4">
                 {/* Image/Icon */}
-                <div className="w-14 h-14 rounded-lg overflow-hidden mr-4 flex-shrink-0" style={{ backgroundColor: 'var(--md-sys-color-surface-container)' }}>
+                <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-lg overflow-hidden mr-3 sm:mr-4 flex-shrink-0" style={{ backgroundColor: 'var(--md-sys-color-surface-container)' }}>
                     {recommendation.coverArt ? (
                         <img
                             src={recommendation.coverArt}
@@ -92,36 +92,37 @@ export default function RecommendationCard({
                 </div>
 
                 {/* Title and Subtitle */}
-                <div className="flex-grow overflow-hidden">
-                    <h3 className="font-medium text-lg mb-1" style={{ color: 'var(--md-sys-color-on-surface)' }}>
+                <div className="flex-grow overflow-hidden min-w-0">
+                    <h3 className="font-medium text-base sm:text-lg mb-1 truncate" style={{ color: 'var(--md-sys-color-on-surface)' }}>
                         {recommendation.title}
                     </h3>
-                    <p className="text-sm" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>
+                    <p className="text-sm truncate" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>
                         {recommendation.author || recommendation.artist || styles.label}
                     </p>
                 </div>
 
                 {/* Match Score and Save Button */}
-                <div className="ml-2 flex items-center gap-2">
+                <div className="ml-2 flex items-center gap-1 sm:gap-2 flex-shrink-0">
                     <IconButton
                         variant={isSaved ? "filled" : "standard"}
                         onClick={(e) => onSave(recommendation.id, e)}
                     >
-                        <Star size={20} className={isSaved ? 'fill-current' : ''} />
+                        <Star size={18} className={isSaved ? 'fill-current' : ''} />
                     </IconButton>
 
                     <Chip
                         variant="assist"
                         label={`${recommendation.matchScore}%`}
+                        className="text-xs"
                     />
                 </div>
             </div>
 
             {/* Expandable Content */}
             <div className={`overflow-hidden transition-all duration-300 ${isExpanded ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'}`}>
-                <div className="px-4 pb-4">
+                <div className="px-3 sm:px-4 pb-3 sm:pb-4">
                     {/* Tags Row */}
-                    <div className="flex flex-wrap gap-2 mb-4">
+                    <div className="flex flex-wrap gap-2 mb-3 sm:mb-4">
                         <Chip
                             variant="suggestion"
                             label={recommendation.mood}
@@ -143,13 +144,13 @@ export default function RecommendationCard({
                     </div>
 
                     {/* Description */}
-                    <p className="text-sm mb-4" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>
+                    <p className="text-sm mb-3 sm:mb-4" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>
                         {recommendation.description}
                     </p>
 
                     {/* AI Reason */}
                     {recommendation.aiReason && (
-                        <Card variant="filled" className="mb-4 p-3">
+                        <Card variant="filled" className="mb-3 sm:mb-4 p-3">
                             <div className="flex items-start">
                                 <Sparkles size={16} style={{ color: 'var(--md-sys-color-primary)' }} className="mt-0.5 mr-2 flex-shrink-0" />
                                 <p className="text-sm" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>
@@ -178,24 +179,24 @@ export default function RecommendationCard({
             </div>
 
             {/* Card Footer */}
-            <div className="px-4 py-3 flex items-center justify-between" style={{ backgroundColor: 'var(--md-sys-color-surface-container-low)' }}>
+            <div className="px-3 sm:px-4 py-2 sm:py-3 flex items-center justify-between" style={{ backgroundColor: 'var(--md-sys-color-surface-container-low)' }}>
                 <div className="flex items-center">
                     <div
-                        className="w-5 h-5 rounded-full flex items-center justify-center mr-2"
+                        className="w-4 h-4 sm:w-5 sm:h-5 rounded-full flex items-center justify-center mr-2"
                         style={{ backgroundColor: styles.color }}
                     >
-                        <div className="text-white" style={{ transform: 'scale(0.8)' }}>
+                        <div className="text-white text-xs sm:text-sm" style={{ transform: 'scale(0.8)' }}>
                             {styles.icon}
                         </div>
                     </div>
 
-                    <span className="text-sm" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>
+                    <span className="text-xs sm:text-sm" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>
                         {isExpanded ? 'Tap to collapse' : 'Tap to learn more'}
                     </span>
                 </div>
 
                 <ChevronRight
-                    size={20}
+                    size={18}
                     className={`transition-transform duration-300 ${isExpanded ? 'rotate-90' : ''}`}
                     style={{ color: 'var(--md-sys-color-on-surface-variant)' }}
                 />

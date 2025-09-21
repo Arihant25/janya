@@ -270,6 +270,7 @@ interface FABProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   size?: 'small' | 'medium' | 'large';
   label?: string;
   lowered?: boolean;
+  extended?: boolean;
 }
 
 export const FAB = forwardRef<HTMLButtonElement, FABProps>(
