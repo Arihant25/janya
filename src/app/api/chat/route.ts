@@ -3,6 +3,7 @@ import { getDb } from '@/lib/mongodb';
 import { getUserFromRequest, createResponse, createErrorResponse } from '@/lib/auth';
 import { GoogleGenAI } from "@google/genai";
 import { ObjectId } from 'mongodb';
+import { geminiService } from '@/lib/gemini';
 
 // The client gets the API key from the environment variable `GEMINI_API_KEY`.
 const ai = new GoogleGenAI({});
@@ -14,22 +15,8 @@ export async function GET(request: NextRequest) {
       return createErrorResponse('Unauthorized', 401);
     }
 
-    const db = await getDb();
-    const messages = await db
-      .collection('chatMessages')
-      .find({ userId: user._id })
-      .sort({ createdAt: 1 })
-      .limit(50)
-      .toArray();
-
-    const formattedMessages = messages.map((msg: any) => ({
-      id: msg._id.toString(),
-      role: msg.role,
-      content: msg.content,
-      timestamp: msg.createdAt
-    }));
-
-    return createResponse({ messages: formattedMessages });
+    // Return empty messages array to start fresh each time
+    return createResponse({ messages: [] });
   } catch (error) {
     console.error('Error fetching chat messages:', error);
     return createErrorResponse('Failed to fetch chat messages', 500);
@@ -51,14 +38,7 @@ export async function POST(request: NextRequest) {
 
     const db = await getDb();
 
-    // Save user message
-    const userMessage = {
-      userId: user._id,
-      role: 'user',
-      content: message.trim(),
-      createdAt: new Date()
-    };
-    await db.collection('chatMessages').insertOne(userMessage);
+    // Don't save user message to database - fresh chat each time
 
     // Get user context for AI
     const userContext = await getUserContext(db, user._id);
@@ -75,18 +55,12 @@ export async function POST(request: NextRequest) {
 
       const aiResponse = response.text || "I'm here to help. Could you tell me more?";
 
-      // Save AI response to database
-      const aiMessage = {
-        userId: user._id,
-        role: 'assistant',
-        content: aiResponse,
-        createdAt: new Date()
-      };
-      const aiResult = await db.collection('chatMessages').insertOne(aiMessage);
+      // Don't save AI response to database - fresh chat each time
+      // But analyze the conversation for mood and persona updates
+      await analyzeAndUpdateUserData(db, user._id, message, aiResponse);
 
       return createResponse({
-        message: aiResponse,
-        messageId: aiResult.insertedId
+        message: aiResponse
       });
 
     } catch (error) {
@@ -126,8 +100,102 @@ async function getUserContext(db: any, userId: ObjectId) {
     currentStreak: userStats?.currentStreak || 0,
     longestStreak: userStats?.longestStreak || 0,
     dominantMoods: userStats?.moodDistribution || {},
-    recentMoodTrend: recentEntries.slice(0, 3).map((e: any) => e.mood) || []
+    recentMoodTrend: recentEntries.slice(0, 3).map((e: any) => e.mood) || [],
+    persona: userStats?.persona || ''
   };
+}
+
+async function analyzeAndUpdateUserData(db: any, userId: ObjectId, userMessage: string, aiResponse: string) {
+  try {
+    // Get current user stats to access existing persona
+    const userStats = await db.collection('userStats').findOne({ userId });
+
+    // Create a conversation context for analysis
+    const conversationContext = `User said: "${userMessage}"\nAI responded: "${aiResponse}"`;
+
+    // Use the existing persona extraction method but adapt it for chat context
+    const personaUpdate = await geminiService.extractAndUpdatePersona(
+      conversationContext,
+      userStats?.persona || ''
+    );
+
+    // Check if we should infer mood from the conversation
+    const shouldUpdateMood = await shouldInferMoodFromChat(userMessage, aiResponse);
+
+    if (shouldUpdateMood.shouldUpdate) {
+      // Update mood distribution if a mood was inferred
+      const moodDistribution = { ...userStats?.moodDistribution || {} };
+      moodDistribution[shouldUpdateMood.inferredMood] = (moodDistribution[shouldUpdateMood.inferredMood] || 0) + 1;
+
+      await db.collection('userStats').updateOne(
+        { userId },
+        {
+          $set: {
+            moodDistribution,
+            persona: personaUpdate.updatedPersona,
+            updatedAt: new Date()
+          }
+        },
+        { upsert: true }
+      );
+    } else {
+      // Just update persona without mood
+      await db.collection('userStats').updateOne(
+        { userId },
+        {
+          $set: {
+            persona: personaUpdate.updatedPersona,
+            updatedAt: new Date()
+          }
+        },
+        { upsert: true }
+      );
+    }
+  } catch (error) {
+    console.error('Error analyzing and updating user data from chat:', error);
+  }
+}
+
+function cleanJsonResponse(text: string): string {
+  // Remove markdown code blocks if present
+  let cleaned = text.trim();
+  if (cleaned.startsWith('```json')) {
+    cleaned = cleaned.replace(/^```json\n?/, '');
+  }
+  if (cleaned.startsWith('```')) {
+    cleaned = cleaned.replace(/^```\n?/, '');
+  }
+  if (cleaned.endsWith('```')) {
+    cleaned = cleaned.replace(/\n?```$/, '');
+  }
+  return cleaned.trim();
+}
+
+async function shouldInferMoodFromChat(userMessage: string, aiResponse: string): Promise<{shouldUpdate: boolean, inferredMood?: string}> {
+  try {
+    const prompt = `
+    Analyze this conversation and determine if the user expressed a clear emotional state that should be tracked.
+
+    User message: "${userMessage}"
+    AI response: "${aiResponse}"
+
+    Should we infer and track a mood from this conversation? Only return true if the user clearly expressed an emotional state.
+    If yes, what mood should be tracked? Use one of: happy, sad, excited, calm, anxious, angry, thoughtful, inspired, neutral
+
+    Return JSON: {"shouldUpdate": boolean, "inferredMood": "mood_name"}
+    `;
+
+    const response = await ai.models.generateContent({
+      model: "gemini-2.5-flash-lite",
+      contents: prompt,
+    });
+
+    const result = JSON.parse(cleanJsonResponse(response.text || '{"shouldUpdate": false}'));
+    return result;
+  } catch (error) {
+    console.error('Error inferring mood from chat:', error);
+    return { shouldUpdate: false };
+  }
 }
 
 function generateSystemPrompt(user: any, context: any): string {
@@ -146,6 +214,9 @@ function generateSystemPrompt(user: any, context: any): string {
 - Dominant Emotions: ${dominantMoods.join(', ') || 'None yet'}
 - Recent Mood Trend: ${context.recentMoodTrend.join(' → ') || 'No recent entries'}
 - Achievements Unlocked: ${context.achievements?.length || 0}
+
+## User Persona:
+${context.persona ? context.persona : 'No detailed persona available yet - this user is just getting started on their journaling journey.'}
 
 ## Recent Journal Insights:
 ${context.recentEntries.length > 0 ?

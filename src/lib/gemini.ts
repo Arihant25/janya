@@ -6,6 +6,21 @@ const ai = new GoogleGenAI({});
 export class GeminiService {
   private model = "gemini-2.5-flash-lite";
 
+  private cleanJsonResponse(text: string): string {
+    // Remove markdown code blocks if present
+    let cleaned = text.trim();
+    if (cleaned.startsWith('```json')) {
+      cleaned = cleaned.replace(/^```json\n?/, '');
+    }
+    if (cleaned.startsWith('```')) {
+      cleaned = cleaned.replace(/^```\n?/, '');
+    }
+    if (cleaned.endsWith('```')) {
+      cleaned = cleaned.replace(/\n?```$/, '');
+    }
+    return cleaned.trim();
+  }
+
   async analyzeJournalEntry(content: string, mood: string) {
     const prompt = `
     Analyze this journal entry and provide insights:
@@ -28,7 +43,7 @@ export class GeminiService {
         contents: prompt,
       });
       const text = response.text || '';
-      return JSON.parse(text);
+      return JSON.parse(this.cleanJsonResponse(text));
     } catch (error) {
       console.error('Error analyzing journal entry:', error);
       return {
@@ -70,7 +85,7 @@ export class GeminiService {
         contents: prompt,
       });
       const text = response.text || '';
-      return JSON.parse(text);
+      return JSON.parse(this.cleanJsonResponse(text));
     } catch (error) {
       console.error('Error generating recommendations:', error);
       return [];
@@ -103,21 +118,78 @@ export class GeminiService {
     }
   }
 
+  async extractAndUpdatePersona(journalContent: string, currentPersona: string = '') {
+    const prompt = `
+    You are analyzing a journal entry to extract information about the user and update their personal profile/persona.
+
+    Journal Entry: "${journalContent}"
+    Current Persona: "${currentPersona}"
+
+    Based on the journal entry, extract:
+    1. Sentiments and emotions the user expressed
+    2. Events or situations that happened to them
+    3. How they feel about what happened
+    4. Personal insights, preferences, relationships, goals, challenges, patterns in behavior/thinking
+    5. Any new information that should be added to their persona
+
+    Then, update the existing persona with this new information. The persona should be a comprehensive text description of the user that captures:
+    - Their personality traits and emotional patterns
+    - Important relationships and social dynamics
+    - Goals, aspirations, and challenges they face
+    - How they typically react to different situations
+    - Their interests, preferences, and values
+    - Recent events and their emotional impact
+
+    Return a JSON object with:
+    {
+      "extractedInfo": {
+        "sentiments": ["sentiment1", "sentiment2"],
+        "events": ["event1", "event2"],
+        "feelings": ["feeling about event1", "feeling about event2"],
+        "insights": ["insight1", "insight2"]
+      },
+      "updatedPersona": "The updated comprehensive persona text that incorporates both old and new information..."
+    }
+
+    Return only valid JSON, no other text.
+    `;
+
+    try {
+      const response = await ai.models.generateContent({
+        model: this.model,
+        contents: prompt,
+      });
+      const text = response.text || '';
+      return JSON.parse(this.cleanJsonResponse(text));
+    } catch (error) {
+      console.error('Error extracting and updating persona:', error);
+      return {
+        extractedInfo: {
+          sentiments: ['reflective'],
+          events: ['journal writing'],
+          feelings: ['contemplative'],
+          insights: ['User is engaging in self-reflection']
+        },
+        updatedPersona: currentPersona || 'User is beginning their journaling journey and appears thoughtful about their experiences.'
+      };
+    }
+  }
+
   async generateThemeColor(content: string, mood: string) {
     const prompt = `
     Based on this journal entry content and mood, suggest a CSS color theme:
-    
+
     Content: "${content}"
     Mood: ${mood}
-    
+
     Return a JSON object with:
     {
       "primary": "#hexcolor",
-      "secondary": "#hexcolor", 
+      "secondary": "#hexcolor",
       "background": "#hexcolor",
       "gradient": "linear-gradient(...)"
     }
-    
+
     Colors should reflect the emotional tone. Return only valid JSON.
     `;
 
@@ -127,7 +199,7 @@ export class GeminiService {
         contents: prompt,
       });
       const text = response.text || '';
-      return JSON.parse(text);
+      return JSON.parse(this.cleanJsonResponse(text));
     } catch (error) {
       console.error('Error generating theme colors:', error);
       return {

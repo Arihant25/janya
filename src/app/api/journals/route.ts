@@ -104,7 +104,7 @@ export async function POST(request: NextRequest) {
     const result = await db.collection('journalEntries').insertOne(entry);
 
     // Update user stats
-    await updateUserStats(db, user._id, mood || 'neutral', tags);
+    await updateUserStats(db, user._id, mood || 'neutral', tags, content);
 
     // Check for achievements
     await checkAchievements(db, user._id);
@@ -119,7 +119,7 @@ export async function POST(request: NextRequest) {
   }
 }
 
-async function updateUserStats(db: any, userId: ObjectId, mood: string, tags: string[]) {
+async function updateUserStats(db: any, userId: ObjectId, mood: string, tags: string[], journalContent: string = '') {
   const stats = await db.collection('userStats').findOne({ userId });
 
   if (stats) {
@@ -139,6 +139,17 @@ async function updateUserStats(db: any, userId: ObjectId, mood: string, tags: st
       currentStreak = 1;
     }
 
+    // Update persona if journal content exists
+    let updatedPersona = stats.persona;
+    if (journalContent.trim()) {
+      try {
+        const personaUpdate = await geminiService.extractAndUpdatePersona(journalContent, stats.persona || '');
+        updatedPersona = personaUpdate.updatedPersona;
+      } catch (error) {
+        console.error('Error updating persona:', error);
+      }
+    }
+
     await db.collection('userStats').updateOne(
       { userId },
       {
@@ -149,6 +160,7 @@ async function updateUserStats(db: any, userId: ObjectId, mood: string, tags: st
           moodDistribution,
           favoriteThemes: [...new Set([...stats.favoriteThemes, ...tags])].slice(0, 10),
           lastEntryDate: today,
+          persona: updatedPersona,
           updatedAt: new Date()
         }
       }
@@ -156,6 +168,18 @@ async function updateUserStats(db: any, userId: ObjectId, mood: string, tags: st
   } else {
     // Initialize user stats for first-time users
     const initialMoodDistribution = { [mood]: 1 };
+
+    // Create initial persona if journal content exists
+    let initialPersona = '';
+    if (journalContent.trim()) {
+      try {
+        const personaUpdate = await geminiService.extractAndUpdatePersona(journalContent, '');
+        initialPersona = personaUpdate.updatedPersona;
+      } catch (error) {
+        console.error('Error creating initial persona:', error);
+      }
+    }
+
     await db.collection('userStats').insertOne({
       userId,
       totalEntries: 1,
@@ -164,6 +188,7 @@ async function updateUserStats(db: any, userId: ObjectId, mood: string, tags: st
       moodDistribution: initialMoodDistribution,
       favoriteThemes: tags.slice(0, 10),
       lastEntryDate: new Date(),
+      persona: initialPersona,
       updatedAt: new Date()
     });
   }
