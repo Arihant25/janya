@@ -1,4 +1,4 @@
-import { GoogleGenAI } from "@google/genai";
+import { GoogleGenAI, Type } from "@google/genai";
 
 // The client gets the API key from the environment variable `GEMINI_API_KEY`.
 const ai = new GoogleGenAI({});
@@ -6,44 +6,50 @@ const ai = new GoogleGenAI({});
 export class GeminiService {
   private model = "gemini-2.5-flash-lite";
 
-  private cleanJsonResponse(text: string): string {
-    // Remove markdown code blocks if present
-    let cleaned = text.trim();
-    if (cleaned.startsWith('```json')) {
-      cleaned = cleaned.replace(/^```json\n?/, '');
-    }
-    if (cleaned.startsWith('```')) {
-      cleaned = cleaned.replace(/^```\n?/, '');
-    }
-    if (cleaned.endsWith('```')) {
-      cleaned = cleaned.replace(/\n?```$/, '');
-    }
-    return cleaned.trim();
-  }
-
   async analyzeJournalEntry(content: string, mood: string) {
     const prompt = `
     Analyze this journal entry and provide insights:
-    
+
     Content: "${content}"
     User's mood: ${mood}
-    
-    Please provide a JSON response with:
-    1. sentiment (number between -1 and 1, where -1 is very negative, 0 is neutral, 1 is very positive)
-    2. emotions (object with emotion names as keys and intensity 0-1 as values)
-    3. themes (array of main themes/topics discussed)
-    4. insights (array of 2-3 meaningful insights about the user's mental state or life)
-    
-    Return only valid JSON, no other text.
+
+    Analyze the sentiment, emotions, themes, and provide meaningful insights about the user's mental state or life based on this entry.
     `;
 
     try {
       const response = await ai.models.generateContent({
         model: this.model,
         contents: prompt,
+        config: {
+          responseMimeType: "application/json",
+          responseSchema: {
+            type: Type.OBJECT,
+            properties: {
+              sentiment: {
+                type: Type.NUMBER,
+                description: "Sentiment score between -1 (very negative) and 1 (very positive)"
+              },
+              emotions: {
+                type: Type.OBJECT,
+                description: "Emotion names as keys with intensity 0-1 as values"
+              },
+              themes: {
+                type: Type.ARRAY,
+                items: { type: Type.STRING },
+                description: "Main themes or topics discussed in the journal entry"
+              },
+              insights: {
+                type: Type.ARRAY,
+                items: { type: Type.STRING },
+                description: "2-3 meaningful insights about the user's mental state or life"
+              }
+            },
+            required: ["sentiment", "emotions", "themes", "insights"],
+            propertyOrdering: ["sentiment", "emotions", "themes", "insights"]
+          }
+        }
       });
-      const text = response.text || '';
-      return JSON.parse(this.cleanJsonResponse(text));
+      return JSON.parse(response.text || '{}');
     } catch (error) {
       console.error('Error analyzing journal entry:', error);
       return {
@@ -57,35 +63,54 @@ export class GeminiService {
 
   async generateRecommendations(userProfile: any, recentEntries: any[], type: 'book' | 'music' | 'activity') {
     const prompt = `
-    Based on this user's recent journal entries and mood patterns, generate ${type} recommendations:
-    
+    Based on this user's recent journal entries and mood patterns, generate personalized ${type} recommendations:
+
     Recent entries: ${JSON.stringify(recentEntries.slice(0, 5))}
-    
-    Please provide 3-5 ${type} recommendations in JSON format:
-    [
-      {
-        "title": "Title/Name",
-        "description": "Brief description",
-        "reason": "Why this matches the user's current state",
-        "metadata": {
-          ${type === 'book' ? '"author": "Author Name"' :
-        type === 'music' ? '"artist": "Artist Name", "genre": "Genre"' :
-          '"duration": "Duration", "intensity": "low/medium/high"'}
-        },
-        "mood": "matching mood"
-      }
-    ]
-    
-    Return only valid JSON array, no other text.
+
+    Generate 3-5 ${type} recommendations that would benefit this user based on their current emotional state and journal content.
     `;
 
     try {
       const response = await ai.models.generateContent({
         model: this.model,
         contents: prompt,
+        config: {
+          responseMimeType: "application/json",
+          responseSchema: {
+            type: Type.ARRAY,
+            items: {
+              type: Type.OBJECT,
+              properties: {
+                title: {
+                  type: Type.STRING,
+                  description: "Title or name of the recommendation"
+                },
+                description: {
+                  type: Type.STRING,
+                  description: "Brief description of the item"
+                },
+                reason: {
+                  type: Type.STRING,
+                  description: "Why this matches the user's current emotional state"
+                },
+                metadata: {
+                  type: Type.OBJECT,
+                  description: "Additional metadata like author, artist, duration, etc."
+                },
+                mood: {
+                  type: Type.STRING,
+                  description: "The mood this recommendation addresses"
+                }
+              },
+              required: ["title", "description", "reason", "mood"],
+              propertyOrdering: ["title", "description", "reason", "metadata", "mood"]
+            },
+            minItems: 3,
+            maxItems: 5
+          }
+        }
       });
-      const text = response.text || '';
-      return JSON.parse(this.cleanJsonResponse(text));
+      return JSON.parse(response.text || '[]');
     } catch (error) {
       console.error('Error generating recommendations:', error);
       return [];
@@ -125,42 +150,55 @@ export class GeminiService {
     Journal Entry: "${journalContent}"
     Current Persona: "${currentPersona}"
 
-    Based on the journal entry, extract:
-    1. Sentiments and emotions the user expressed
-    2. Events or situations that happened to them
-    3. How they feel about what happened
-    4. Personal insights, preferences, relationships, goals, challenges, patterns in behavior/thinking
-    5. Any new information that should be added to their persona
-
-    Then, update the existing persona with this new information. The persona should be a comprehensive text description of the user that captures:
-    - Their personality traits and emotional patterns
-    - Important relationships and social dynamics
-    - Goals, aspirations, and challenges they face
-    - How they typically react to different situations
-    - Their interests, preferences, and values
-    - Recent events and their emotional impact
-
-    Return a JSON object with:
-    {
-      "extractedInfo": {
-        "sentiments": ["sentiment1", "sentiment2"],
-        "events": ["event1", "event2"],
-        "feelings": ["feeling about event1", "feeling about event2"],
-        "insights": ["insight1", "insight2"]
-      },
-      "updatedPersona": "The updated comprehensive persona text that incorporates both old and new information..."
-    }
-
-    Return only valid JSON, no other text.
+    Based on the journal entry, extract sentiments, events, feelings, and insights about the user. Then update the existing persona with this new information. The persona should be a comprehensive text description that captures their personality, relationships, goals, challenges, interests, and recent experiences.
     `;
 
     try {
       const response = await ai.models.generateContent({
         model: this.model,
         contents: prompt,
+        config: {
+          responseMimeType: "application/json",
+          responseSchema: {
+            type: Type.OBJECT,
+            properties: {
+              extractedInfo: {
+                type: Type.OBJECT,
+                properties: {
+                  sentiments: {
+                    type: Type.ARRAY,
+                    items: { type: Type.STRING },
+                    description: "Sentiments and emotions the user expressed"
+                  },
+                  events: {
+                    type: Type.ARRAY,
+                    items: { type: Type.STRING },
+                    description: "Events or situations that happened to them"
+                  },
+                  feelings: {
+                    type: Type.ARRAY,
+                    items: { type: Type.STRING },
+                    description: "How they feel about what happened"
+                  },
+                  insights: {
+                    type: Type.ARRAY,
+                    items: { type: Type.STRING },
+                    description: "Personal insights, preferences, relationships, goals, challenges"
+                  }
+                },
+                required: ["sentiments", "events", "feelings", "insights"]
+              },
+              updatedPersona: {
+                type: Type.STRING,
+                description: "Updated comprehensive persona text incorporating old and new information"
+              }
+            },
+            required: ["extractedInfo", "updatedPersona"],
+            propertyOrdering: ["extractedInfo", "updatedPersona"]
+          }
+        }
       });
-      const text = response.text || '';
-      return JSON.parse(this.cleanJsonResponse(text));
+      return JSON.parse(response.text || '{}');
     } catch (error) {
       console.error('Error extracting and updating persona:', error);
       return {
@@ -177,29 +215,46 @@ export class GeminiService {
 
   async generateThemeColor(content: string, mood: string) {
     const prompt = `
-    Based on this journal entry content and mood, suggest a CSS color theme:
+    Based on this journal entry content and mood, suggest a CSS color theme that reflects the emotional tone:
 
     Content: "${content}"
     Mood: ${mood}
 
-    Return a JSON object with:
-    {
-      "primary": "#hexcolor",
-      "secondary": "#hexcolor",
-      "background": "#hexcolor",
-      "gradient": "linear-gradient(...)"
-    }
-
-    Colors should reflect the emotional tone. Return only valid JSON.
+    Generate colors that match the emotional atmosphere of the content.
     `;
 
     try {
       const response = await ai.models.generateContent({
         model: this.model,
         contents: prompt,
+        config: {
+          responseMimeType: "application/json",
+          responseSchema: {
+            type: Type.OBJECT,
+            properties: {
+              primary: {
+                type: Type.STRING,
+                description: "Primary hex color that reflects the mood"
+              },
+              secondary: {
+                type: Type.STRING,
+                description: "Secondary hex color that complements the primary"
+              },
+              background: {
+                type: Type.STRING,
+                description: "Background hex color appropriate for the theme"
+              },
+              gradient: {
+                type: Type.STRING,
+                description: "CSS linear-gradient expression using the colors"
+              }
+            },
+            required: ["primary", "secondary", "background", "gradient"],
+            propertyOrdering: ["primary", "secondary", "background", "gradient"]
+          }
+        }
       });
-      const text = response.text || '';
-      return JSON.parse(this.cleanJsonResponse(text));
+      return JSON.parse(response.text || '{}');
     } catch (error) {
       console.error('Error generating theme colors:', error);
       return {

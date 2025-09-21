@@ -1,7 +1,7 @@
 import { NextRequest } from 'next/server';
 import { getDb } from '@/lib/mongodb';
 import { getUserFromRequest, createResponse, createErrorResponse } from '@/lib/auth';
-import { GoogleGenAI } from "@google/genai";
+import { GoogleGenAI, Type } from "@google/genai";
 import { ObjectId } from 'mongodb';
 import { geminiService } from '@/lib/gemini';
 
@@ -156,20 +156,6 @@ async function analyzeAndUpdateUserData(db: any, userId: ObjectId, userMessage: 
   }
 }
 
-function cleanJsonResponse(text: string): string {
-  // Remove markdown code blocks if present
-  let cleaned = text.trim();
-  if (cleaned.startsWith('```json')) {
-    cleaned = cleaned.replace(/^```json\n?/, '');
-  }
-  if (cleaned.startsWith('```')) {
-    cleaned = cleaned.replace(/^```\n?/, '');
-  }
-  if (cleaned.endsWith('```')) {
-    cleaned = cleaned.replace(/\n?```$/, '');
-  }
-  return cleaned.trim();
-}
 
 async function shouldInferMoodFromChat(userMessage: string, aiResponse: string): Promise<{shouldUpdate: boolean, inferredMood?: string}> {
   try {
@@ -179,19 +165,34 @@ async function shouldInferMoodFromChat(userMessage: string, aiResponse: string):
     User message: "${userMessage}"
     AI response: "${aiResponse}"
 
-    Should we infer and track a mood from this conversation? Only return true if the user clearly expressed an emotional state.
-    If yes, what mood should be tracked? Use one of: happy, sad, excited, calm, anxious, angry, thoughtful, inspired, neutral
-
-    Return JSON: {"shouldUpdate": boolean, "inferredMood": "mood_name"}
+    Determine if the user clearly expressed an emotional state. If yes, identify which mood from the allowed list.
     `;
 
     const response = await ai.models.generateContent({
       model: "gemini-2.5-flash-lite",
       contents: prompt,
+      config: {
+        responseMimeType: "application/json",
+        responseSchema: {
+          type: Type.OBJECT,
+          properties: {
+            shouldUpdate: {
+              type: Type.BOOLEAN,
+              description: "Whether the user clearly expressed an emotional state that should be tracked"
+            },
+            inferredMood: {
+              type: Type.STRING,
+              enum: ["happy", "sad", "excited", "calm", "anxious", "angry", "thoughtful", "inspired", "neutral"],
+              description: "The mood that was expressed by the user"
+            }
+          },
+          required: ["shouldUpdate"],
+          propertyOrdering: ["shouldUpdate", "inferredMood"]
+        }
+      }
     });
 
-    const result = JSON.parse(cleanJsonResponse(response.text || '{"shouldUpdate": false}'));
-    return result;
+    return JSON.parse(response.text || '{"shouldUpdate": false}');
   } catch (error) {
     console.error('Error inferring mood from chat:', error);
     return { shouldUpdate: false };
