@@ -5,8 +5,12 @@ import { GoogleGenAI, Type } from "@google/genai";
 import { ObjectId } from 'mongodb';
 import { geminiService } from '@/lib/gemini';
 
-// The client gets the API key from the environment variable `GEMINI_API_KEY`.
-const ai = new GoogleGenAI({});
+// Initialize Gemini client with API key
+const getGeminiClient = () => {
+  return new GoogleGenAI({
+    apiKey: process.env.GEMINI_API_KEY
+  });
+};
 
 export async function GET(request: NextRequest) {
   try {
@@ -48,19 +52,46 @@ export async function POST(request: NextRequest) {
     const fullPrompt = `${systemPrompt}\n\nUser: ${message}`;
 
     try {
+      const ai = getGeminiClient();
       const response = await ai.models.generateContent({
         model: "gemini-2.5-flash-lite",
         contents: fullPrompt,
+        config: {
+          responseMimeType: "application/json",
+          responseSchema: {
+            type: Type.OBJECT,
+            properties: {
+              response: {
+                type: Type.STRING,
+                description: "The supportive and empathetic response to the user's message"
+              },
+              tone: {
+                type: Type.STRING,
+                enum: ["supportive", "encouraging", "empathetic", "reflective", "gentle"],
+                description: "The tone of the response"
+              },
+              emotionalContext: {
+                type: Type.STRING,
+                description: "Brief description of the emotional context detected"
+              }
+            },
+            required: ["response", "tone"],
+            propertyOrdering: ["response", "tone", "emotionalContext"]
+          }
+        }
       });
 
-      const aiResponse = response.text || "I'm here to help. Could you tell me more?";
+      const responseData = JSON.parse(response.text || '{}');
+      const aiResponse = responseData.response || "I'm here to help. Could you tell me more?";
 
       // Don't save AI response to database - fresh chat each time
       // But analyze the conversation for mood and persona updates
       await analyzeAndUpdateUserData(db, user._id, message, aiResponse);
 
       return createResponse({
-        message: aiResponse
+        message: aiResponse,
+        tone: responseData.tone,
+        emotionalContext: responseData.emotionalContext
       });
 
     } catch (error) {
@@ -168,6 +199,7 @@ async function shouldInferMoodFromChat(userMessage: string, aiResponse: string):
     Determine if the user clearly expressed an emotional state. If yes, identify which mood from the allowed list.
     `;
 
+    const ai = getGeminiClient();
     const response = await ai.models.generateContent({
       model: "gemini-2.5-flash-lite",
       contents: prompt,
@@ -236,15 +268,17 @@ ${context.recentEntries.length > 0 ?
 - Help them reflect on their emotional patterns and growth
 
 ## Guidelines:
+- ALWAYS refer to the user as "you" in your responses, never "the user" or any other third-person reference
 - Always acknowledge their emotions and validate their feelings
 - Use their name occasionally to personalize the conversation
-- Reference specific journal entries or patterns when relevant
+- Reference specific journal entries or patterns when relevant ("In your recent entry about...", "You mentioned feeling...")
 - Offer practical coping strategies tailored to their dominant moods
 - Encourage continued journaling and self-reflection
 - Be curious about their day-to-day experiences
-- Help them identify positive patterns and progress
+- Help them identify positive patterns and progress ("You've been showing growth in...", "I noticed you've been...")
 - Suggest journal prompts when appropriate
 - Keep responses concise but meaningful (2-4 sentences usually)
+- Address them directly: "You seem to be...", "How are you feeling about...", "You've made progress with..."
 
 ## Response Style:
 - Conversational and supportive

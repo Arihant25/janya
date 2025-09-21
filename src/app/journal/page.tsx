@@ -7,6 +7,7 @@ import withAuth from '@/components/withAuth';
 import Navigation from '@/app/components/Navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { apiService } from '@/lib/api';
+import { geminiService } from '@/lib/gemini';
 
 interface JournalEntry {
   id: string;
@@ -260,20 +261,13 @@ const AIInsights = ({ content, mood }: { content: string; mood: string }) => {
 
     setLoading(true);
     try {
-      // Simulate AI analysis - replace with actual Gemini API call
-      setTimeout(() => {
-        const mockInsights = [
-          "Your writing shows a positive shift in perspective today.",
-          "There's a theme of growth and self-reflection in your thoughts.",
-          "You seem to be processing emotions in a healthy way.",
-          "Your gratitude practice is showing through in your words.",
-          "There's an underlying current of determination in your writing."
-        ];
-        setInsights(mockInsights[Math.floor(Math.random() * mockInsights.length)]);
-        setLoading(false);
-      }, 2000);
+      const analysis = await geminiService.analyzeJournalEntry(content, mood);
+      const insight = analysis.insights?.[0] || "Your thoughts reveal your unique perspective and emotional journey.";
+      setInsights(insight);
     } catch (error) {
       console.error('Error generating insights:', error);
+      setInsights("Your journal entry reflects your personal growth and self-awareness.");
+    } finally {
       setLoading(false);
     }
   };

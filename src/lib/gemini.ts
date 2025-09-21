@@ -1,22 +1,30 @@
 import { GoogleGenAI, Type } from "@google/genai";
 
-// The client gets the API key from the environment variable `GEMINI_API_KEY`.
-const ai = new GoogleGenAI({});
+// Initialize with API key - only works on server side
+const getGeminiClient = () => {
+  if (typeof window !== 'undefined') {
+    throw new Error('Gemini client should only be used on the server side');
+  }
+  return new GoogleGenAI({
+    apiKey: process.env.GEMINI_API_KEY
+  });
+};
 
 export class GeminiService {
   private model = "gemini-2.5-flash-lite";
 
   async analyzeJournalEntry(content: string, mood: string) {
     const prompt = `
-    Analyze this journal entry and provide insights:
+    Analyze this journal entry and provide insights. In your response, always refer to the person as "you":
 
     Content: "${content}"
     User's mood: ${mood}
 
-    Analyze the sentiment, emotions, themes, and provide meaningful insights about the user's mental state or life based on this entry.
+    Analyze the sentiment, emotions, themes, and provide meaningful insights about the user's mental state or life based on this entry. When writing insights, address the user directly as "you" (e.g., "You seem to be processing emotions well", "Your writing shows growth").
     `;
 
     try {
+      const ai = getGeminiClient();
       const response = await ai.models.generateContent({
         model: this.model,
         contents: prompt,
@@ -74,14 +82,15 @@ export class GeminiService {
 
   async generateRecommendations(userProfile: any, recentEntries: any[], type: 'book' | 'music' | 'activity') {
     const prompt = `
-    Based on this user's recent journal entries and mood patterns, generate personalized ${type} recommendations:
+    Based on the user's recent journal entries and mood patterns, generate personalized ${type} recommendations. In your response, always refer to the person as "you":
 
     Recent entries: ${JSON.stringify(recentEntries.slice(0, 5))}
 
-    Generate 3-5 ${type} recommendations that would benefit this user based on their current emotional state and journal content.
+    Generate 3-5 ${type} recommendations that would benefit the user based on their current emotional state and journal content. When writing reasons and descriptions, address them directly as "you" (e.g., "This book would help you process your emotions", "You might enjoy this calming music").
     `;
 
     try {
+      const ai = getGeminiClient();
       const response = await ai.models.generateContent({
         model: this.model,
         contents: prompt,
@@ -138,19 +147,21 @@ export class GeminiService {
 
   async generateChatResponse(message: string, userContext: any[], previousMessages: any[]) {
     const prompt = `
-    You are a digital twin AI therapist who knows the user intimately based on their journal entries. 
+    You are a digital twin AI therapist who knows the user intimately based on their journal entries.
     Be empathetic, understanding, and supportive. Use insights from their journal history to provide personalized responses.
-    
+    IMPORTANT: Always refer to the person as "you" in your response, not "the user" or any other term.
+
     User's journal context: ${JSON.stringify(userContext.slice(0, 10))}
     Recent conversation: ${JSON.stringify(previousMessages.slice(-5))}
-    
+
     User's current message: "${message}"
-    
+
     Respond as their digital twin who understands their patterns, struggles, and growth. Be conversational, warm, and insightful.
-    Keep responses under 200 words and focus on being helpful and supportive.
+    Keep responses under 200 words and focus on being helpful and supportive. Address them directly as "you" throughout.
     `;
 
     try {
+      const ai = getGeminiClient();
       const response = await ai.models.generateContent({
         model: this.model,
         contents: prompt,
@@ -165,14 +176,16 @@ export class GeminiService {
   async extractAndUpdatePersona(journalContent: string, currentPersona: string = '') {
     const prompt = `
     You are analyzing a journal entry to extract information about the user and update their personal profile/persona.
+    When writing the persona description, refer to the person as "you" throughout.
 
     Journal Entry: "${journalContent}"
     Current Persona: "${currentPersona}"
 
-    Based on the journal entry, extract sentiments, events, feelings, and insights about the user. Then update the existing persona with this new information. The persona should be a comprehensive text description that captures their personality, relationships, goals, challenges, interests, and recent experiences.
+    Based on the journal entry, extract sentiments, events, feelings, and insights about the user. Then update the existing persona with this new information. The persona should be a comprehensive text description that captures their personality, relationships, goals, challenges, interests, and recent experiences. Write the persona in second person (using "you" instead of "they" or "the user").
     `;
 
     try {
+      const ai = getGeminiClient();
       const response = await ai.models.generateContent({
         model: this.model,
         contents: prompt,
@@ -225,24 +238,26 @@ export class GeminiService {
           sentiments: ['reflective'],
           events: ['journal writing'],
           feelings: ['contemplative'],
-          insights: ['User is engaging in self-reflection']
+          insights: ['You are engaging in self-reflection']
         },
-        updatedPersona: currentPersona || 'User is beginning their journaling journey and appears thoughtful about their experiences.'
+        updatedPersona: currentPersona || 'You are beginning your journaling journey and appear thoughtful about your experiences.'
       };
     }
   }
 
   async generateThemeColor(content: string, mood: string) {
     const prompt = `
-    Based on this journal entry content and mood, suggest a CSS color theme that reflects the emotional tone:
+    Based on this journal entry content and mood, suggest a CSS color theme that reflects the emotional tone.
+    You are creating colors for the user's journal entry:
 
     Content: "${content}"
     Mood: ${mood}
 
-    Generate colors that match the emotional atmosphere of the content.
+    Generate colors that match the emotional atmosphere of the user's content. Create a theme that would resonate with their current emotional state.
     `;
 
     try {
+      const ai = getGeminiClient();
       const response = await ai.models.generateContent({
         model: this.model,
         contents: prompt,

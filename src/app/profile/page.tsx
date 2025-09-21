@@ -5,6 +5,7 @@ import withAuth from '@/components/withAuth';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, User, BarChart3, Settings, Award, LogOut } from 'lucide-react';
+import { apiService } from '@/lib/api';
 
 // Components
 import StatsGrid from './components/StatsGrid';
@@ -36,45 +37,15 @@ interface UserProfile {
   achievements?: any[];
 }
 
-// Mock achievements data
-const mockAchievements = [
-  {
-    id: '1',
-    name: 'First Entry',
-    description: 'Write your first journal entry',
-    icon: '✨',
-    unlocked: true,
-    rarity: 'common' as const
-  },
-  {
-    id: '2',
-    name: 'Week Warrior',
-    description: 'Journal for 7 consecutive days',
-    icon: '🔥',
-    unlocked: true,
-    rarity: 'rare' as const
-  },
-  {
-    id: '3',
-    name: 'Word Smith',
-    description: 'Write 10,000 words total',
-    icon: '📝',
-    unlocked: false,
-    progress: 7500,
-    maxProgress: 10000,
-    rarity: 'epic' as const
-  },
-  {
-    id: '4',
-    name: 'Consistency King',
-    description: 'Maintain a 30-day streak',
-    icon: '👑',
-    unlocked: false,
-    progress: 12,
-    maxProgress: 30,
-    rarity: 'legendary' as const
-  }
-];
+// Achievement mapping for database achievements
+const mapAchievementFromDatabase = (dbAchievement: any) => ({
+  id: dbAchievement._id?.toString() || dbAchievement.achievementId,
+  name: dbAchievement.title,
+  description: dbAchievement.description,
+  icon: dbAchievement.icon,
+  unlocked: true,
+  rarity: dbAchievement.rarity || 'common' as const
+});
 
 type TabType = 'overview' | 'profile' | 'preferences' | 'achievements';
 
@@ -107,41 +78,50 @@ function ProfilePageComponent() {
     try {
       setLoading(true);
 
-      // Try to get from localStorage for demo
-      const storedJournals = localStorage.getItem('janya-journals');
-      const journals = storedJournals ? JSON.parse(storedJournals) : [];
+      const response = await apiService.getProfile();
+      const profileData = response.profile;
 
-      // Calculate stats from journals
-      const totalEntries = journals.length;
-      const totalWords = journals.reduce((sum: number, journal: any) =>
-        sum + (journal.content?.split(' ').length || 0), 0);
+      // Map database achievements to frontend format
+      const mappedAchievements = profileData.achievements?.map(mapAchievementFromDatabase) || [];
 
-      // Mock profile data
-      const mockProfile: UserProfile = {
-        id: user?.id || '1',
-        name: user?.name || 'Janya User',
-        email: user?.email || 'user@janya.com',
-        avatar: user?.avatar,
-        musicPlatform: 'spotify',
-        joinDate: '2024-01-01',
-        preferences: {
+      // Calculate total words from journal entries if not available
+      let totalWords = 0;
+      if (!profileData.stats.totalWords) {
+        try {
+          const journalsResponse = await apiService.getJournalEntries();
+          const journals = journalsResponse.entries || [];
+          totalWords = journals.reduce((sum: number, journal: any) =>
+            sum + (journal.content?.split(' ').filter((word: string) => word.length > 0).length || 0), 0);
+        } catch (error) {
+          console.error('Error calculating total words:', error);
+        }
+      }
+
+      const userProfile: UserProfile = {
+        id: profileData.id,
+        name: profileData.name,
+        email: profileData.email,
+        avatar: profileData.avatar,
+        musicPlatform: profileData.musicPlatform || 'spotify',
+        joinDate: profileData.joinDate,
+        preferences: profileData.preferences || {
           journalReminders: true,
           dailyInsights: true,
           weeklyReports: false,
           pushNotifications: true
         },
         stats: {
-          totalEntries,
-          currentStreak: 5,
-          longestStreak: 12,
-          totalWords,
-          favoriteThemes: ['thoughtful', 'happy', 'calm'],
-          weeklyAverage: Math.ceil(totalEntries / 4) || 1
+          totalEntries: profileData.stats.totalEntries || 0,
+          currentStreak: profileData.stats.currentStreak || 0,
+          longestStreak: profileData.stats.longestStreak || 0,
+          totalWords: profileData.stats.totalWords || totalWords,
+          favoriteThemes: profileData.stats.favoriteThemes || [],
+          weeklyAverage: Math.ceil((profileData.stats.totalEntries || 0) / 4) || 0
         },
-        achievements: mockAchievements
+        achievements: mappedAchievements
       };
 
-      setProfile(mockProfile);
+      setProfile(userProfile);
     } catch (error: any) {
       setError(error.message || 'Failed to load profile');
     } finally {
@@ -151,9 +131,9 @@ function ProfilePageComponent() {
 
   const handleSaveProfile = async (updatedData: any) => {
     try {
+      await apiService.updateProfile(updatedData);
       setProfile(prev => prev ? { ...prev, ...updatedData } : null);
-      // In real app, call API to update profile
-      console.log('Profile updated:', updatedData);
+      updateUser(updatedData);
     } catch (error: any) {
       setError(error.message || 'Failed to update profile');
     }

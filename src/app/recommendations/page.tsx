@@ -61,57 +61,64 @@ interface Recommendation {
   clicked?: boolean;
 }
 
-const analyzeUserMoodFromEntries = (entries: any[]): MoodAnalysis => {
-  if (entries.length === 0) {
+const analyzeUserMoodFromEntries = async (entries: any[]): Promise<MoodAnalysis> => {
+  try {
+    const response = await apiService.analyzeMood(entries);
+    return response.moodAnalysis;
+  } catch (error) {
+    console.error('Error analyzing mood with AI:', error);
+
+    // Fallback to basic analysis
+    if (entries.length === 0) {
+      return {
+        primary: 'neutral',
+        secondary: ['calm', 'curious'],
+        sentiment: 'neutral',
+        emotions: ['neutral', 'calm'],
+        interests: ['general wellness'],
+        stressLevel: 5,
+        energyLevel: 5,
+        confidence: 0.1
+      };
+    }
+
+    // Simple analysis as fallback
+    const moodCounts = entries.reduce((acc: any, entry) => {
+      const mood = entry.mood || 'neutral';
+      acc[mood] = (acc[mood] || 0) + 1;
+      return acc;
+    }, {});
+
+    const primaryMood = Object.entries(moodCounts)
+      .sort(([, a], [, b]) => (b as number) - (a as number))[0]?.[0] || 'neutral';
+
+    const positiveMoods = ['happy', 'excited', 'grateful', 'inspired', 'calm'];
+    const negativeMoods = ['sad', 'anxious', 'angry', 'frustrated', 'stressed'];
+
+    let positiveCount = 0;
+    let negativeCount = 0;
+
+    entries.forEach(entry => {
+      if (positiveMoods.includes(entry.mood)) positiveCount++;
+      else if (negativeMoods.includes(entry.mood)) negativeCount++;
+    });
+
+    let sentiment: 'positive' | 'negative' | 'neutral';
+    if (positiveCount > negativeCount) sentiment = 'positive';
+    else if (negativeCount > positiveCount) sentiment = 'negative';
+    else sentiment = 'neutral';
+
     return {
-      primary: 'neutral',
-      secondary: ['calm', 'curious'],
-      sentiment: 'neutral',
-      emotions: ['neutral', 'calm'],
+      primary: primaryMood,
+      secondary: Object.keys(moodCounts).filter(m => m !== primaryMood).slice(0, 3),
+      sentiment,
+      emotions: [primaryMood, ...Object.keys(moodCounts).filter(m => m !== primaryMood).slice(0, 2)],
       interests: ['general wellness'],
-      stressLevel: 5,
-      energyLevel: 5,
-      confidence: 0.5
+      stressLevel: Math.min(10, Math.max(1, 5 + (negativeMoods.filter(m => Object.keys(moodCounts).includes(m)).length * 2) - (positiveMoods.filter(m => Object.keys(moodCounts).includes(m)).length))),
+      energyLevel: Math.min(10, Math.max(1, 5 + (positiveMoods.filter(m => Object.keys(moodCounts).includes(m)).length * 2) - (negativeMoods.filter(m => Object.keys(moodCounts).includes(m)).length))),
+      confidence: Math.min(1, entries.length / 3)
     };
   }
-
-  // Analyze mood distribution
-  const moodCounts = entries.reduce((acc: any, entry) => {
-    const mood = entry.mood || 'neutral';
-    acc[mood] = (acc[mood] || 0) + 1;
-    return acc;
-  }, {});
-
-  const primaryMood = Object.entries(moodCounts)
-    .sort(([, a], [, b]) => (b as number) - (a as number))[0]?.[0] || 'neutral';
-
-  // Determine overall sentiment
-  const positiveMoods = ['happy', 'excited', 'grateful', 'inspired', 'calm'];
-  const negativeMoods = ['sad', 'anxious', 'angry', 'frustrated', 'stressed'];
-
-  let positiveCount = 0;
-  let negativeCount = 0;
-
-  entries.forEach(entry => {
-    if (positiveMoods.includes(entry.mood)) positiveCount++;
-    else if (negativeMoods.includes(entry.mood)) negativeCount++;
-  });
-
-  let sentiment: 'positive' | 'negative' | 'neutral';
-  if (positiveCount > negativeCount) sentiment = 'positive';
-  else if (negativeCount > positiveCount) sentiment = 'negative';
-  else sentiment = 'neutral';
-
-  return {
-    primary: primaryMood,
-    secondary: Object.keys(moodCounts).filter(m => m !== primaryMood).slice(0, 3),
-    sentiment,
-    emotions: [primaryMood, ...Object.keys(moodCounts).filter(m => m !== primaryMood).slice(0, 2)],
-    interests: ['general wellness'],
-    stressLevel: Math.min(10, Math.max(1, 5 + (negativeMoods.filter(m => Object.keys(moodCounts).includes(m)).length * 2) - (positiveMoods.filter(m => Object.keys(moodCounts).includes(m)).length))),
-    energyLevel: Math.min(10, Math.max(1, 5 + (positiveMoods.filter(m => Object.keys(moodCounts).includes(m)).length * 2) - (negativeMoods.filter(m => Object.keys(moodCounts).includes(m)).length))),
-    confidence: Math.min(1, entries.length / 3)
-  };
 };
 
 // API functions
@@ -222,7 +229,7 @@ function RecommendationsPageComponent() {
         setRecommendations(existingRecs);
 
         // Analyze user mood from entries
-        const analysis = analyzeUserMoodFromEntries(entries);
+        const analysis = await analyzeUserMoodFromEntries(entries);
         setMoodAnalysis(analysis);
         setLastAnalyzed(new Date());
 
@@ -254,7 +261,7 @@ function RecommendationsPageComponent() {
       setRecommendations(recs);
 
       // Re-analyze mood
-      const analysis = analyzeUserMoodFromEntries(entries);
+      const analysis = await analyzeUserMoodFromEntries(entries);
       setMoodAnalysis(analysis);
       setLastAnalyzed(new Date());
     } catch (error) {

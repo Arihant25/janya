@@ -137,19 +137,11 @@ class ApiService {
     return this.request('/chat');
   }
 
-  async sendChatMessage(message: string): Promise<ReadableStream<Uint8Array>> {
-    const url = `${this.baseUrl}/api/chat`;
-    const response = await fetch(url, {
+  async sendChatMessage(message: string) {
+    return this.request('/chat', {
       method: 'POST',
-      headers: this.getHeaders(),
       body: JSON.stringify({ message }),
     });
-
-    if (!response.ok) {
-      throw new Error('Failed to send message');
-    }
-
-    return response.body!;
   }
 
   // Recommendations
@@ -181,6 +173,14 @@ class ApiService {
     return this.request('/profile', {
       method: 'PATCH',
       body: JSON.stringify(updates),
+    });
+  }
+
+  // Mood Analysis
+  async analyzeMood(journalEntries: any[]) {
+    return this.request('/mood-analysis', {
+      method: 'POST',
+      body: JSON.stringify({ journalEntries }),
     });
   }
 }

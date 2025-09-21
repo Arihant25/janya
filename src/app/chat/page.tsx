@@ -97,12 +97,12 @@ function ChatPageComponent() {
     setInputMessage('');
     setIsSending(true);
 
-    // Create streaming AI message
+    // Create thinking message
     const aiMessageId = `ai-${Date.now()}`;
     const aiMessage: Message = {
       id: aiMessageId,
       role: 'assistant',
-      content: '',
+      content: 'thinking...',
       timestamp: new Date(),
       streaming: true
     };
@@ -111,53 +111,22 @@ function ChatPageComponent() {
     setStreamingMessageId(aiMessageId);
 
     try {
-      const stream = await apiService.sendChatMessage(message.trim());
-      const reader = stream.getReader();
-      const decoder = new TextDecoder();
+      const response = await apiService.sendChatMessage(message.trim());
 
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-
-        const chunk = decoder.decode(value);
-        const lines = chunk.split('\n');
-
-        for (const line of lines) {
-          if (line.startsWith('data: ')) {
-            try {
-              const data = JSON.parse(line.slice(6));
-
-              if (data.error) {
-                throw new Error(data.error);
-              }
-
-              if (data.text) {
-                setMessages(prev => prev.map(msg =>
-                  msg.id === aiMessageId
-                    ? { ...msg, content: msg.content + data.text }
-                    : msg
-                ));
-              }
-
-              if (data.done) {
-                setMessages(prev => prev.map(msg =>
-                  msg.id === aiMessageId
-                    ? { ...msg, streaming: false }
-                    : msg
-                ));
-                setStreamingMessageId(null);
-                break;
-              }
-            } catch (parseError) {
-              console.error('Error parsing streaming data:', parseError);
-            }
+      // Update message with actual response
+      setMessages(prev => prev.map(msg =>
+        msg.id === aiMessageId
+          ? {
+            ...msg,
+            content: response.message || 'I apologize, but I didn\'t receive a proper response. Please try again.',
+            streaming: false
           }
-        }
-      }
+          : msg
+      ));
     } catch (error) {
       console.error('Error sending message:', error);
 
-      // Update the streaming message with error
+      // Update the message with error
       setMessages(prev => prev.map(msg =>
         msg.id === aiMessageId
           ? {
@@ -167,8 +136,8 @@ function ChatPageComponent() {
           }
           : msg
       ));
-      setStreamingMessageId(null);
     } finally {
+      setStreamingMessageId(null);
       setIsSending(false);
     }
   };
@@ -249,7 +218,7 @@ function ChatPageComponent() {
         {/* Messages */}
         <div className="px-4 py-6 space-y-6 pb-32">
           {messages.map((message) => (
-            <div key={message.id} className={`flex gap-3 ${message.role === 'user' ? 'flex-row-reverse' : ''}`}>
+            <div key={message.id} className={`flex gap-3 ${message.role === 'user' ? 'flex-row-reverse' : ''} animate-in fade-in-0 slide-in-from-bottom-2 duration-300`}>
               {/* Avatar */}
               <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${message.role === 'user'
                 ? 'bg-blue-500'
@@ -270,9 +239,22 @@ function ChatPageComponent() {
                   : 'bg-white border border-gray-200 text-gray-800 shadow-sm'
                   }`}>
                   <p className="whitespace-pre-wrap leading-relaxed">
-                    {message.content}
-                    {message.streaming && (
-                      <span className="inline-block w-2 h-5 ml-1 bg-current animate-pulse" />
+                    {message.streaming && message.content === 'thinking...' ? (
+                      <span className="flex items-center gap-1">
+                        <span>thinking</span>
+                        <span className="flex gap-1">
+                          <span className="w-1 h-1 bg-current rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></span>
+                          <span className="w-1 h-1 bg-current rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></span>
+                          <span className="w-1 h-1 bg-current rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></span>
+                        </span>
+                      </span>
+                    ) : (
+                      <>
+                        {message.content}
+                        {message.streaming && (
+                          <span className="inline-block w-2 h-5 ml-1 bg-current animate-pulse" />
+                        )}
+                      </>
                     )}
                   </p>
                 </div>
