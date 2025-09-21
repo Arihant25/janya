@@ -53,9 +53,9 @@ export class GeminiService {
         "description": "Brief description",
         "reason": "Why this matches the user's current state",
         "metadata": {
-          ${type === 'book' ? '"author": "Author Name"' : 
-            type === 'music' ? '"artist": "Artist Name", "genre": "Genre"' : 
-            '"duration": "Duration", "intensity": "low/medium/high"'}
+          ${type === 'book' ? '"author": "Author Name"' :
+        type === 'music' ? '"artist": "Artist Name", "genre": "Genre"' :
+          '"duration": "Duration", "intensity": "low/medium/high"'}
         },
         "mood": "matching mood"
       }

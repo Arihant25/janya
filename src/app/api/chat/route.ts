@@ -84,9 +84,9 @@ export async function POST(request: NextRequest) {
       };
       const aiResult = await db.collection('chatMessages').insertOne(aiMessage);
 
-      return createResponse({ 
+      return createResponse({
         message: aiResponse,
-        messageId: aiResult.insertedId 
+        messageId: aiResult.insertedId
       });
 
     } catch (error) {

@@ -7,7 +7,7 @@ const ai = new GoogleGenAI({});
 export async function POST(request: NextRequest) {
   try {
     const { prompt } = await request.json();
-    
+
     if (!process.env.GEMINI_API_KEY) {
       throw new Error('Gemini API key not configured');
     }
@@ -16,9 +16,9 @@ export async function POST(request: NextRequest) {
       model: "gemini-2.5-flash-lite",
       contents: prompt,
     });
-    
+
     const text = response.text || '';
-    
+
     // Validate JSON response
     try {
       JSON.parse(text);
@@ -26,11 +26,11 @@ export async function POST(request: NextRequest) {
       console.error('Invalid JSON response from Gemini:', text);
       throw new Error('Invalid response format from AI');
     }
-    
+
     return NextResponse.json({ analysis: text });
   } catch (error) {
     console.error('Error in Gemini analysis:', error);
-    
+
     // Return fallback analysis
     const fallbackAnalysis = {
       primary: 'neutral',
@@ -44,8 +44,8 @@ export async function POST(request: NextRequest) {
       emotionalJourney: 'Unable to analyze at this time',
       keyThemes: ['general wellness']
     };
-    
-    return NextResponse.json({ 
+
+    return NextResponse.json({
       analysis: JSON.stringify(fallbackAnalysis)
     });
   }
