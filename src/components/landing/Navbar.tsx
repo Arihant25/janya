@@ -81,18 +81,18 @@ export default function Navbar({ onGetStarted }: NavbarProps) {
                     <div className="nav-links" style={{
                         display: isMobile ? 'none' : 'flex',
                         gap: '2rem',
+                        fontSize: '1.2rem',
+                        fontWeight: '600',
                         alignItems: 'center'
                     }}>
                         <a href="#features" style={{
                             textDecoration: 'none',
                             color: textColor,
-                            fontSize: '1rem',
                             transition: 'color 0.3s ease'
                         }}>Features</a>
                         <a href="#how-it-works" style={{
                             textDecoration: 'none',
                             color: textColor,
-                            fontSize: '1rem',
                             transition: 'color 0.3s ease'
                         }}>How it works</a>
                         <button
@@ -102,7 +102,6 @@ export default function Navbar({ onGetStarted }: NavbarProps) {
                                 border: 'none',
                                 borderRadius: '8px',
                                 padding: '0.75rem 1.5rem',
-                                fontSize: '1rem',
                                 fontWeight: '500',
                                 cursor: 'pointer',
                                 transition: 'background-color 0.3s ease'

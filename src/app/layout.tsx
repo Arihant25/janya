@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Roboto } from "next/font/google";
 import "./globals.css";
-import "./janya-styles.css";
+import "./main.css";
 import MaterialWebProvider from "./components/MaterialWebProvider";
 import { AuthProvider } from "@/contexts/AuthContext";
 
