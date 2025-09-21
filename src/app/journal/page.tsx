@@ -550,7 +550,7 @@ function JournalPageComponent() {
             type="text"
             placeholder={isEditing ? "Edit your journal title..." : "What's on your mind today?"}
             value={entry.title}
-            onChange={(e) => setEntry(prev => ({ ...prev, title: e.target.value }))}
+            onChange={(e) => setEntry(prev => ({ ...prev, title: (e.target as HTMLInputElement).value }))}
             className="w-full"
             label="Journal Title"
           />
@@ -572,7 +572,7 @@ function JournalPageComponent() {
           <textarea
             placeholder="Write about your day, your thoughts, your dreams..."
             value={entry.content}
-            onChange={(e) => setEntry(prev => ({ ...prev, content: e.target.value }))}
+            onChange={(e) => setEntry(prev => ({ ...prev, content: (e.target as HTMLTextAreaElement).value }))}
             className="w-full h-40 bg-transparent border-none outline-none resize-none leading-relaxed"
             style={{
               color: 'var(--janya-text-primary)',
