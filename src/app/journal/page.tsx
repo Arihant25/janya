@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { Camera, Save, Mic, MicOff, Heart, Smile, Frown, Meh, Angry, Zap, Coffee, Music, Image as ImageIcon, Type, Sparkles, Sun, Moon, Cloud, CloudRain } from 'lucide-react';
-import { Card, Button, IconButton, TextField, LinearProgress, FAB } from '@/app/components/MaterialComponents';
+import { Card, Button, IconButton, TextField, LinearProgress, FAB, Icon } from '@/app/components/MaterialComponents';
 import withAuth from '@/components/withAuth';
 import Navigation from '@/app/components/Navigation';
 import { useAuth } from '@/contexts/AuthContext';
@@ -605,21 +605,26 @@ function JournalPageComponent() {
         )}
       </div>
 
-      {/* Floating Save Button */}
-      <FAB
-        onClick={handleSave}
-        disabled={isSaving}
-        className="fixed bottom-6 right-6"
-        style={{
-          backgroundColor: isSaving ? 'var(--md-sys-color-outline)' : 'var(--janya-primary)'
-        }}
-      >
-        {isSaving ? (
-          <LinearProgress />
-        ) : (
-          <Save size={24} style={{ color: 'white' }} />
-        )}
-      </FAB>
+      {/* Floating Save Button (Material Web filled button styled as a circular FAB) */}
+      <div className="fixed bottom-22 right-6 z-60 pointer-events-auto">
+        <Button
+          onClick={handleSave}
+          disabled={isSaving}
+          variant="filled"
+          className="rounded-full w-14 h-14 p-0 flex items-center justify-center shadow-lg"
+          style={{
+            backgroundColor: isSaving ? 'var(--md-sys-color-outline)' : 'var(--janya-primary)'
+          }}
+        >
+          {isSaving ? (
+            <LinearProgress className="w-12" />
+          ) : (
+            <Icon style={{ color: 'white' }}>
+              <Save size={20} />
+            </Icon>
+          )}
+        </Button>
+      </div>
 
       {/* Success Message */}
       {showSuccess && (

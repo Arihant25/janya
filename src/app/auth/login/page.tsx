@@ -31,8 +31,8 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4" 
-         style={{ backgroundColor: 'var(--md-sys-color-surface-container-low)' }}>
+    <div className="min-h-screen flex items-center justify-center p-4"
+      style={{ backgroundColor: 'var(--md-sys-color-surface-container-low)' }}>
       <Card variant="elevated" className="w-full max-w-md p-6">
         <div className="text-center mb-8">
           <div className="flex items-center justify-center mb-4">
@@ -45,15 +45,15 @@ export default function LoginPage() {
             Sign in to your journaling space
           </p>
         </div>
-        
+
         <form onSubmit={handleSubmit} className="space-y-4">
           {isLoading && (
             <LinearProgress indeterminate className="mb-4" />
           )}
-          
+
           {error && (
-            <Card variant="filled" className="p-3 mb-4" 
-                  style={{ backgroundColor: 'var(--md-sys-color-error-container)' }}>
+            <Card variant="filled" className="p-3 mb-4"
+              style={{ backgroundColor: 'var(--md-sys-color-error-container)' }}>
               <div className="flex items-center gap-2">
                 <AlertCircle className="w-5 h-5" style={{ color: 'var(--md-sys-color-on-error-container)' }} />
                 <span className="text-sm" style={{ color: 'var(--md-sys-color-on-error-container)' }}>
@@ -62,7 +62,7 @@ export default function LoginPage() {
               </div>
             </Card>
           )}
-          
+
           <div className="space-y-4">
             <div className="relative">
               <TextField
@@ -71,12 +71,13 @@ export default function LoginPage() {
                 required
                 value={email}
                 onInput={(e) => setEmail((e.target as HTMLInputElement).value)}
+                hasLeadingIcon
                 className="w-full"
               />
-              <Mail className="w-5 h-5 absolute left-3 top-1/2 transform -translate-y-1/2 pointer-events-none" 
-                    style={{ color: 'var(--md-sys-color-on-surface-variant)' }} />
+              <Mail className="w-5 h-5 absolute left-3 top-1/2 transform -translate-y-1/2 pointer-events-none"
+                style={{ color: 'var(--md-sys-color-on-surface-variant)' }} />
             </div>
-            
+
             <div className="relative">
               <TextField
                 label="Password"
@@ -84,10 +85,11 @@ export default function LoginPage() {
                 required
                 value={password}
                 onInput={(e) => setPassword((e.target as HTMLInputElement).value)}
+                hasLeadingIcon
                 className="w-full"
               />
-              <Lock className="w-5 h-5 absolute left-3 top-1/2 transform -translate-y-1/2 pointer-events-none" 
-                    style={{ color: 'var(--md-sys-color-on-surface-variant)' }} />
+              <Lock className="w-5 h-5 absolute left-3 top-1/2 transform -translate-y-1/2 pointer-events-none"
+                style={{ color: 'var(--md-sys-color-on-surface-variant)' }} />
             </div>
           </div>
 
@@ -112,8 +114,8 @@ export default function LoginPage() {
           <div className="text-center pt-4">
             <p className="text-sm" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>
               Don't have an account?{' '}
-              <Link 
-                href="/auth/register" 
+              <Link
+                href="/auth/register"
                 className="font-medium hover:underline"
                 style={{ color: 'var(--md-sys-color-primary)' }}
               >

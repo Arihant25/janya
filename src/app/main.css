@@ -1121,6 +1121,16 @@ md-outlined-text-field.email-input {
   left: 100%;
 }
 
+/* Ensure floating action buttons appear above header/nav bars */
+.md-fab,
+.fab,
+.floating-action-button,
+.fixed-fab {
+  z-index: 60;
+  /* header/nav use z-50 in Navigation.tsx */
+  pointer-events: auto;
+}
+
 /* Duolingo-style XP Display */
 .xp-display {
   display: flex;

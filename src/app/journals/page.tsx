@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { Journal, MOOD_EMOJIS, MOOD_GRADIENTS, MoodType } from '@/types/theme';
-import { Card, Button, IconButton, TextField, LinearProgress, Chip, FAB } from '@/app/components/MaterialComponents';
+import { Card, Button, IconButton, TextField, LinearProgress, Chip, FAB, Icon } from '@/app/components/MaterialComponents';
+import { Plus } from 'lucide-react';
 import withAuth from '@/components/withAuth';
 import Navigation from '@/app/components/Navigation';
 import { useAuth } from '@/contexts/AuthContext';
@@ -248,13 +249,18 @@ function JournalsPageComponent() {
         />
       )}
 
-      <FAB
-        onClick={handleNewJournal}
-        className="fixed bottom-6 right-6"
-        style={{ backgroundColor: 'var(--janya-primary)' }}
-      >
-        <span style={{ color: 'white', fontSize: '24px' }}>+</span>
-      </FAB>
+      <div className="fixed bottom-6 right-6 z-60 pointer-events-auto">
+        <Button
+          onClick={handleNewJournal}
+          variant="filled"
+          className="rounded-full w-14 h-14 p-0 flex items-center justify-center shadow-lg"
+          style={{ backgroundColor: 'var(--janya-primary)' }}
+        >
+          <Icon style={{ color: 'white' }}>
+            <Plus size={20} />
+          </Icon>
+        </Button>
+      </div>
     </div>
   );
 }

@@ -85,6 +85,7 @@ export default function RegisterPage() {
                 required
                 value={name}
                 onInput={(e) => setName((e.target as HTMLInputElement).value)}
+                hasLeadingIcon
                 className="w-full"
               />
               <User className="w-5 h-5 absolute left-3 top-1/2 transform -translate-y-1/2 pointer-events-none"
@@ -98,6 +99,7 @@ export default function RegisterPage() {
                 required
                 value={email}
                 onInput={(e) => setEmail((e.target as HTMLInputElement).value)}
+                hasLeadingIcon
                 className="w-full"
               />
               <Mail className="w-5 h-5 absolute left-3 top-1/2 transform -translate-y-1/2 pointer-events-none"
@@ -111,6 +113,7 @@ export default function RegisterPage() {
                 required
                 value={password}
                 onInput={(e) => setPassword((e.target as HTMLInputElement).value)}
+                hasLeadingIcon
                 className="w-full"
                 supportingText="Minimum 6 characters"
               />
@@ -125,6 +128,7 @@ export default function RegisterPage() {
                 required
                 value={confirmPassword}
                 onInput={(e) => setConfirmPassword((e.target as HTMLInputElement).value)}
+                hasLeadingIcon
                 className="w-full"
                 error={confirmPassword !== '' && password !== confirmPassword}
                 errorText={confirmPassword !== '' && password !== confirmPassword ? 'Passwords do not match' : ''}
