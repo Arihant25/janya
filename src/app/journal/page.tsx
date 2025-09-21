@@ -164,8 +164,8 @@ const VoiceRecorder = ({ onRecordingComplete }: { onRecordingComplete: (audioBlo
       <button
         onClick={isRecording ? stopRecording : startRecording}
         className={`flex items-center gap-2 px-4 py-2 rounded-xl transition-all duration-300 ${isRecording
-            ? 'bg-red-500 text-white shadow-lg'
-            : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+          ? 'bg-red-500 text-white shadow-lg'
+          : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
           }`}
       >
         {isRecording ? <MicOff size={18} /> : <Mic size={18} />}
@@ -195,8 +195,8 @@ const MoodSelector = ({ selectedMood, onMoodSelect }: {
             key={mood.name}
             onClick={() => onMoodSelect(mood.name)}
             className={`flex flex-col items-center gap-2 p-3 rounded-xl transition-all duration-300 ${selectedMood === mood.name
-                ? 'bg-white shadow-lg border-2 scale-105'
-                : 'bg-gray-50 hover:bg-gray-100 border-2 border-transparent'
+              ? 'bg-white shadow-lg border-2 scale-105'
+              : 'bg-gray-50 hover:bg-gray-100 border-2 border-transparent'
               }`}
             style={{
               borderColor: selectedMood === mood.name ? mood.color : 'transparent'
@@ -616,8 +616,8 @@ function JournalPageComponent() {
             onClick={handleSave}
             disabled={isSaving}
             className={`w-full py-4 rounded-2xl font-medium transition-all duration-300 ${isSaving
-                ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                : 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg hover:shadow-xl transform hover:scale-105'
+              ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+              : 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg hover:shadow-xl transform hover:scale-105'
               }`}
           >
             {isSaving ? (

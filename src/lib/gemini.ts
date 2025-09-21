@@ -1,9 +1,10 @@
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import { GoogleGenAI } from "@google/genai";
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
+// The client gets the API key from the environment variable `GEMINI_API_KEY`.
+const ai = new GoogleGenAI({});
 
 export class GeminiService {
-  private model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
+  private model = "gemini-2.5-flash-lite";
 
   async analyzeJournalEntry(content: string, mood: string) {
     const prompt = `
@@ -22,9 +23,11 @@ export class GeminiService {
     `;
 
     try {
-      const result = await this.model.generateContent(prompt);
-      const response = await result.response;
-      const text = response.text();
+      const response = await ai.models.generateContent({
+        model: this.model,
+        contents: prompt,
+      });
+      const text = response.text || '';
       return JSON.parse(text);
     } catch (error) {
       console.error('Error analyzing journal entry:', error);
@@ -62,9 +65,11 @@ export class GeminiService {
     `;
 
     try {
-      const result = await this.model.generateContent(prompt);
-      const response = await result.response;
-      const text = response.text();
+      const response = await ai.models.generateContent({
+        model: this.model,
+        contents: prompt,
+      });
+      const text = response.text || '';
       return JSON.parse(text);
     } catch (error) {
       console.error('Error generating recommendations:', error);
@@ -87,9 +92,11 @@ export class GeminiService {
     `;
 
     try {
-      const result = await this.model.generateContent(prompt);
-      const response = await result.response;
-      return response.text();
+      const response = await ai.models.generateContent({
+        model: this.model,
+        contents: prompt,
+      });
+      return response.text || "I'm here to listen and support you. Could you tell me more about what's on your mind?";
     } catch (error) {
       console.error('Error generating chat response:', error);
       return "I'm here to listen and support you. Could you tell me more about what's on your mind?";
@@ -115,9 +122,11 @@ export class GeminiService {
     `;
 
     try {
-      const result = await this.model.generateContent(prompt);
-      const response = await result.response;
-      const text = response.text();
+      const response = await ai.models.generateContent({
+        model: this.model,
+        contents: prompt,
+      });
+      const text = response.text || '';
       return JSON.parse(text);
     } catch (error) {
       console.error('Error generating theme colors:', error);

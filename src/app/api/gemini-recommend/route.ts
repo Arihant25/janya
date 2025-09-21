@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import { GoogleGenAI } from "@google/genai";
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
+// The client gets the API key from the environment variable `GEMINI_API_KEY`.
+const ai = new GoogleGenAI({});
 
 export async function POST(request: NextRequest) {
   try {
@@ -11,20 +12,12 @@ export async function POST(request: NextRequest) {
       throw new Error('Gemini API key not configured');
     }
 
-    // Use Gemini 2.5 Pro model with specific configuration for recommendations
-    const model = genAI.getGenerativeModel({ 
-      model: 'gemini-2.5-flash',
-      generationConfig: {
-        temperature: 0.8, // Higher creativity for recommendations
-        topK: 40,
-        topP: 0.95,
-        maxOutputTokens: 4096, // More tokens for detailed recommendations
-      },
+    const response = await ai.models.generateContent({
+      model: "gemini-2.5-flash-lite",
+      contents: prompt,
     });
     
-    const result = await model.generateContent(prompt);
-    const response = await result.response;
-    const text = response.text();
+    const text = response.text || '';
     
     // Validate JSON array response
     try {

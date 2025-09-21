@@ -49,8 +49,8 @@ export default function JournalHeader({
                             <button
                                 onClick={() => onViewModeChange('folders')}
                                 className={`p-2 rounded-full transition-all duration-300 ${viewMode === 'folders'
-                                        ? 'bg-white shadow-sm scale-105'
-                                        : 'hover:bg-gray-200'
+                                    ? 'bg-white shadow-sm scale-105'
+                                    : 'hover:bg-gray-200'
                                     }`}
                             >
                                 <Grid size={16} className={viewMode === 'folders' ? 'text-gray-800' : 'text-gray-500'} />
@@ -58,8 +58,8 @@ export default function JournalHeader({
                             <button
                                 onClick={() => onViewModeChange('list')}
                                 className={`p-2 rounded-full transition-all duration-300 ${viewMode === 'list'
-                                        ? 'bg-white shadow-sm scale-105'
-                                        : 'hover:bg-gray-200'
+                                    ? 'bg-white shadow-sm scale-105'
+                                    : 'hover:bg-gray-200'
                                     }`}
                             >
                                 <List size={16} className={viewMode === 'list' ? 'text-gray-800' : 'text-gray-500'} />
@@ -67,8 +67,8 @@ export default function JournalHeader({
                             <button
                                 onClick={() => onViewModeChange('grid')}
                                 className={`p-2 rounded-full transition-all duration-300 ${viewMode === 'grid'
-                                        ? 'bg-white shadow-sm scale-105'
-                                        : 'hover:bg-gray-200'
+                                    ? 'bg-white shadow-sm scale-105'
+                                    : 'hover:bg-gray-200'
                                     }`}
                             >
                                 <Grid3X3 size={16} className={viewMode === 'grid' ? 'text-gray-800' : 'text-gray-500'} />
@@ -87,7 +87,6 @@ export default function JournalHeader({
                         onChange={(e) => onSearchChange(e.target.value)}
                         className="w-full pl-12 pr-4 py-4 bg-gray-50 rounded-2xl border-0 focus:bg-white focus:ring-2 transition-all duration-300"
                         style={{
-                            focusRingColor: 'var(--janya-primary)',
                             fontSize: '16px' // Prevents zoom on iOS
                         }}
                     />

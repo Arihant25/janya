@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Journal, MOOD_EMOJIS, MOOD_GRADIENTS } from '@/types/theme';
+import { Journal, MOOD_EMOJIS, MOOD_GRADIENTS, MoodType } from '@/types/theme';
 import withAuth from '@/components/withAuth';
 import Navigation from '@/app/components/Navigation';
 import { useAuth } from '@/contexts/AuthContext';
@@ -90,24 +90,24 @@ function JournalsPageComponent() {
       // Fetch from API
       const data = await apiService.getJournalEntries();
       const formattedJournals = data.entries.map((journal: any) => ({
-          id: journal.id,
-          title: journal.title,
-          date: journal.date,
-          time: journal.time,
-          mood: journal.mood || 'thoughtful',
-          preview: journal.preview || 'No preview available',
-          wordCount: journal.wordCount || 0,
-          abstractArt: MOOD_GRADIENTS[journal.mood] || MOOD_GRADIENTS.thoughtful,
-          theme: journal.mood || 'thoughtful',
-          content: journal.content,
-          photo: journal.photo,
-          audioRecording: journal.audioRecording,
-          weather: journal.weather,
-          location: journal.location,
-          tags: journal.tags || [],
-          aiInsights: journal.aiInsights
-        }));
-        setJournals(formattedJournals);
+        id: journal.id,
+        title: journal.title,
+        date: journal.date,
+        time: journal.time,
+        mood: journal.mood || 'thoughtful',
+        preview: journal.preview || 'No preview available',
+        wordCount: journal.wordCount || 0,
+        abstractArt: MOOD_GRADIENTS[journal.mood as MoodType] || MOOD_GRADIENTS.thoughtful,
+        theme: journal.mood || 'thoughtful',
+        content: journal.content,
+        photo: journal.photo,
+        audioRecording: journal.audioRecording,
+        weather: journal.weather,
+        location: journal.location,
+        tags: journal.tags || [],
+        aiInsights: journal.aiInsights
+      }));
+      setJournals(formattedJournals);
     } catch (error) {
       console.error('Error fetching journals:', error);
 

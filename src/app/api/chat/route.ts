@@ -1,10 +1,11 @@
 import { NextRequest } from 'next/server';
 import { getDb } from '@/lib/mongodb';
 import { getUserFromRequest, createResponse, createErrorResponse } from '@/lib/auth';
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import { GoogleGenAI } from "@google/genai";
 import { ObjectId } from 'mongodb';
 
-const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY!);
+// The client gets the API key from the environment variable `GEMINI_API_KEY`.
+const ai = new GoogleGenAI({});
 
 export async function GET(request: NextRequest) {
   try {
@@ -62,81 +63,36 @@ export async function POST(request: NextRequest) {
     // Get user context for AI
     const userContext = await getUserContext(db, user._id);
 
-    // Generate AI response with streaming
-    const model = genAI.getGenerativeModel({
-      model: 'gemini-2.5-flash',
-      systemInstruction: generateSystemPrompt(user, userContext)
-    });
+    // Generate AI response
+    const systemPrompt = generateSystemPrompt(user, userContext);
+    const fullPrompt = `${systemPrompt}\n\nUser: ${message}`;
 
-    // Get recent chat history for context
-    const recentMessages = await db
-      .collection('chatMessages')
-      .find({ userId: user._id })
-      .sort({ createdAt: -1 })
-      .limit(10)
-      .toArray();
+    try {
+      const response = await ai.models.generateContent({
+        model: "gemini-2.5-flash-lite",
+        contents: fullPrompt,
+      });
 
-    // Format chat history for Gemini
-    const history = recentMessages
-      .reverse()
-      .slice(0, -1) // Exclude the message we just added
-      .map((msg: any) => ({
-        role: msg.role === 'assistant' ? 'model' : 'user',
-        parts: [{ text: msg.content }]
-      }));
+      const aiResponse = response.text || "I'm here to help. Could you tell me more?";
 
-    const chat = model.startChat({ history });
+      // Save AI response to database
+      const aiMessage = {
+        userId: user._id,
+        role: 'assistant',
+        content: aiResponse,
+        createdAt: new Date()
+      };
+      const aiResult = await db.collection('chatMessages').insertOne(aiMessage);
 
-    // Create readable stream for response
-    const encoder = new TextEncoder();
-    const stream = new ReadableStream({
-      async start(controller) {
-        try {
-          const result = await chat.sendMessageStream(message);
-          let fullResponse = '';
+      return createResponse({ 
+        message: aiResponse,
+        messageId: aiResult.insertedId 
+      });
 
-          for await (const chunk of result.stream) {
-            const text = chunk.text();
-            fullResponse += text;
-
-            // Send chunk to client
-            controller.enqueue(
-              encoder.encode(`data: ${JSON.stringify({ text, done: false })}\n\n`)
-            );
-          }
-
-          // Save AI response to database
-          const aiMessage = {
-            userId: user._id,
-            role: 'assistant',
-            content: fullResponse,
-            createdAt: new Date()
-          };
-          const aiResult = await db.collection('chatMessages').insertOne(aiMessage);
-
-          // Send completion signal
-          controller.enqueue(
-            encoder.encode(`data: ${JSON.stringify({ text: '', done: true, messageId: aiResult.insertedId })}\n\n`)
-          );
-          controller.close();
-
-        } catch (error) {
-          console.error('Chat streaming error:', error);
-          controller.enqueue(
-            encoder.encode(`data: ${JSON.stringify({ error: 'Failed to generate response' })}\n\n`)
-          );
-          controller.close();
-        }
-      }
-    });
-
-    return new Response(stream, {
-      headers: {
-        'Content-Type': 'text/event-stream',
-        'Cache-Control': 'no-cache',
-        'Connection': 'keep-alive',
-      },
-    });
+    } catch (error) {
+      console.error('Chat generation error:', error);
+      return createErrorResponse('Failed to generate response', 500);
+    }
 
   } catch (error) {
     console.error('Error processing chat message:', error);

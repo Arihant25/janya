@@ -252,8 +252,8 @@ function ChatPageComponent() {
             <div key={message.id} className={`flex gap-3 ${message.role === 'user' ? 'flex-row-reverse' : ''}`}>
               {/* Avatar */}
               <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${message.role === 'user'
-                  ? 'bg-blue-500'
-                  : 'bg-gradient-to-r from-purple-500 to-pink-500'
+                ? 'bg-blue-500'
+                : 'bg-gradient-to-r from-purple-500 to-pink-500'
                 }`}>
                 {message.role === 'user' ? (
                   <User size={16} className="text-white" />
@@ -266,8 +266,8 @@ function ChatPageComponent() {
               <div className={`flex-1 max-w-xs sm:max-w-sm md:max-w-md lg:max-w-lg ${message.role === 'user' ? 'text-right' : ''
                 }`}>
                 <div className={`p-3 rounded-2xl ${message.role === 'user'
-                    ? 'bg-blue-500 text-white'
-                    : 'bg-white border border-gray-200 text-gray-800 shadow-sm'
+                  ? 'bg-blue-500 text-white'
+                  : 'bg-white border border-gray-200 text-gray-800 shadow-sm'
                   }`}>
                   <p className="whitespace-pre-wrap leading-relaxed">
                     {message.content}
@@ -306,7 +306,7 @@ function ChatPageComponent() {
         </div>
 
         {/* Input */}
-        <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-lg">
+        <div className="fixed bottom-25 sm:bottom-26 left-0 right-0 bg-white border-t border-gray-200 shadow-lg z-50">
           <div className="max-w-4xl mx-auto px-4 py-4">
             <div className="flex items-end gap-3">
               <div className="flex-1 relative">
@@ -318,7 +318,7 @@ function ChatPageComponent() {
                     adjustTextareaHeight();
                   }}
                   onKeyPress={handleKeyPress}
-                  placeholder="Ask me anything about your wellness journey..."
+                  placeholder="Tell me what's on your mind..."
                   className="w-full px-4 py-3 pr-12 border border-gray-300 rounded-2xl resize-none focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                   rows={1}
                   disabled={isSending}
