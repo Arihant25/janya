@@ -402,8 +402,8 @@ function JournalPageComponent() {
 
   const handleSave = async () => {
     // Check if at least one field has content
-    const hasTitle = entry.title?.trim().length > 0;
-    const hasContent = entry.content?.trim().length > 0;
+    const hasTitle = Boolean(entry.title?.trim());
+    const hasContent = Boolean(entry.content?.trim());
     const hasMood = entry.mood !== '';
     const hasPhoto = photo !== null;
     const hasAudio = audioBlob !== null;
@@ -423,10 +423,10 @@ function JournalPageComponent() {
         content: entry.content?.trim() || '',
         mood: entry.mood || 'neutral',
         tags: entry.tags || [],
-        photo: photo ? await convertPhotoToBase64(photo) : null,
-        audioRecording: audioBlob ? await convertAudioToBase64(audioBlob) : null,
+        photo: photo ? await convertPhotoToBase64(photo) : undefined,
+        audioRecording: audioBlob ? await convertAudioToBase64(audioBlob) : undefined,
         weather: weather,
-        location: entry.location || null
+        location: entry.location || undefined
       };
 
       // Save to MongoDB via API
@@ -464,7 +464,7 @@ function JournalPageComponent() {
 
     } catch (error) {
       console.error('Error saving journal:', error);
-      setError(error.message || 'Failed to save journal entry. Please try again.');
+      setError(error instanceof Error ? error.message : 'Failed to save journal entry. Please try again.');
     } finally {
       setIsSaving(false);
     }

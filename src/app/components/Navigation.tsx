@@ -11,8 +11,8 @@ export default function Navigation() {
   const router = useRouter();
   const pathname = usePathname();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const dropdownRef = useRef(null);
-  const buttonRef = useRef(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+  const buttonRef = useRef<HTMLButtonElement>(null);
 
   const handleLogout = () => {
     logout();
@@ -22,9 +22,9 @@ export default function Navigation() {
 
   // Close dropdown when clicking outside
   useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target) &&
-        !buttonRef.current.contains(event.target)) {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node) &&
+        buttonRef.current && !buttonRef.current.contains(event.target as Node)) {
         setIsDropdownOpen(false);
       }
     };
@@ -66,15 +66,9 @@ export default function Navigation() {
       icon: <Compass size={24} />,
       description: 'Find new content'
     },
-    {
-      href: '/profile',
-      label: 'Profile',
-      icon: <User size={24} />,
-      description: 'Account settings'
-    },
   ];
 
-  const getInitials = (name) => {
+  const getInitials = (name: string) => {
     if (!name) return 'U';
     return name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
   };
@@ -189,8 +183,8 @@ export default function Navigation() {
 
                   {/* Icon container with enhanced styling */}
                   <div className={`relative flex items-center justify-center w-12 h-12 rounded-2xl mb-1 transition-all duration-200 ${isActive
-                      ? 'bg-gradient-to-br from-purple-500 to-indigo-500 shadow-lg shadow-purple-500/25 scale-105'
-                      : 'bg-transparent group-hover:bg-gray-100 group-hover:scale-105'
+                    ? 'bg-gradient-to-br from-purple-500 to-indigo-500 shadow-lg shadow-purple-500/25 scale-105'
+                    : 'bg-transparent group-hover:bg-gray-100 group-hover:scale-105'
                     }`}>
                     <div className={`transition-all duration-200 ${isActive ? 'text-white' : 'text-gray-600 group-hover:text-gray-800'
                       }`}>
@@ -205,8 +199,8 @@ export default function Navigation() {
 
                   {/* Label with enhanced typography */}
                   <span className={`text-xs font-medium transition-all duration-200 ${isActive
-                      ? 'text-purple-600 font-semibold'
-                      : 'text-gray-600 group-hover:text-gray-800'
+                    ? 'text-purple-600 font-semibold'
+                    : 'text-gray-600 group-hover:text-gray-800'
                     }`}>
                     {item.label}
                   </span>

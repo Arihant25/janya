@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { JournalEntry } from '@/types/database';
 
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const date = searchParams.get('date');
-    
+
     if (!date) {
       return NextResponse.json(
         { error: 'Date parameter is required' },
@@ -14,7 +15,7 @@ export async function GET(request: NextRequest) {
 
     // In a real application, you would fetch from your database
     // For now, we'll return mock data or check localStorage
-    
+
     // Example database query (replace with your actual database logic):
     // const entries = await db.journalEntries.findMany({
     //   where: {
@@ -28,8 +29,8 @@ export async function GET(request: NextRequest) {
     // });
 
     // Mock response for development
-    const entries = [];
-    
+    const entries: JournalEntry[] = [];
+
     return NextResponse.json({ entries });
   } catch (error) {
     console.error('Error fetching journal entries:', error);

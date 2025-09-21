@@ -54,8 +54,8 @@
   --janya-accent: #00bfae;
   /* Blue-green accent */
   --janya-accent-light: #c2fff6;
-  --janya-warm-gradient: linear-gradient(135deg, #0168C8 0%, #00C687 100%);
-  --janya-soft-gradient: linear-gradient(135deg, #e0f0fb 0%, #d2f7ec 100%);
+  --janya-warm-gradient: var(--janya-primary);
+  --janya-soft-gradient: var(--janya-primary-light);
   --janya-neutral: #e0f7fa;
   --janya-text-primary: #002a2a;
   --janya-text-secondary: #005a5a;
@@ -298,9 +298,9 @@ a:hover {
   }
 }
 
-/* Hero Section - Enhanced with warm gradient */
+/* Hero Section - Material 3 Design */
 .hero-section {
-  background: var(--janya-warm-gradient);
+  background: var(--janya-primary);
   color: white;
   padding: var(--space-4xl) 0;
   text-align: center;
@@ -309,17 +309,6 @@ a:hover {
   min-height: 60vh;
   display: flex;
   align-items: center;
-}
-
-.hero-section::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: radial-gradient(circle at 30% 50%, rgba(255, 255, 255, 0.1) 0%, transparent 50%);
-  pointer-events: none;
 }
 
 .hero-content {
@@ -473,7 +462,7 @@ md-outlined-text-field:focus-within {
   left: 0;
   right: 0;
   height: 4px;
-  background: var(--janya-warm-gradient);
+  background: var(--janya-primary);
   opacity: 0;
   transition: var(--transition-normal);
 }
@@ -519,7 +508,7 @@ md-outlined-text-field:focus-within {
   justify-content: center;
   width: 60px;
   height: 60px;
-  background: var(--janya-warm-gradient);
+  background: var(--janya-primary);
   color: white;
   border-radius: var(--radius-full);
   font-size: var(--font-size-xl);
@@ -540,7 +529,7 @@ md-outlined-text-field:focus-within {
 
 /* CTA Section Enhancement */
 .cta-section {
-  background: var(--janya-soft-gradient);
+  background: var(--janya-primary-light);
   color: var(--janya-text-primary);
   padding: var(--space-4xl) 0;
   text-align: center;
@@ -1126,10 +1115,7 @@ md-outlined-text-field.email-input {
   left: -100%;
   width: 100%;
   height: 100%;
-  background: linear-gradient(90deg,
-      transparent,
-      rgba(255, 255, 255, 0.2),
-      transparent);
+  background: rgba(255, 255, 255, 0.1);
   transition: 0.5s;
 }
 
@@ -1371,12 +1357,12 @@ md-outlined-text-field.email-input {
   background-color: var(--janya-neutral);
 }
 
-.bg-gradient {
-  background: var(--janya-warm-gradient);
+.bg-primary {
+  background: var(--janya-primary);
 }
 
-.bg-soft-gradient {
-  background: var(--janya-soft-gradient);
+.bg-primary-light {
+  background: var(--janya-primary-light);
 }
 
 /* Border Utilities */

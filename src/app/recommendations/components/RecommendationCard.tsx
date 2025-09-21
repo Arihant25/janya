@@ -1,6 +1,7 @@
 'use client';
 
 import { BookOpen, Volume2, Activity, Star, ExternalLink, ChevronRight, Sparkles } from 'lucide-react';
+import { Card, Button, IconButton, Chip } from '@/app/components/MaterialComponents';
 
 interface Recommendation {
     id: string;
@@ -68,15 +69,15 @@ export default function RecommendationCard({
     const styles = getTypeStyles();
 
     return (
-        <div
-            className={`bg-white rounded-xl overflow-hidden border border-gray-200 transition-all duration-300 ${isExpanded ? 'shadow-md' : 'shadow-sm'
-                }`}
+        <Card
+            variant="elevated"
+            className={`overflow-hidden transition-all duration-300 cursor-pointer ${isExpanded ? 'shadow-lg' : ''}`}
             onClick={() => onClick(recommendation)}
         >
             {/* Card Header - Always visible */}
-            <div className="flex items-center p-3 border-b border-gray-100">
+            <div className="flex items-center p-4">
                 {/* Image/Icon */}
-                <div className="w-11 h-11 rounded-lg overflow-hidden mr-3 flex-shrink-0 border border-gray-200">
+                <div className="w-14 h-14 rounded-lg overflow-hidden mr-4 flex-shrink-0" style={{ backgroundColor: 'var(--md-sys-color-surface-container)' }}>
                     {recommendation.coverArt ? (
                         <img
                             src={recommendation.coverArt}
@@ -84,10 +85,7 @@ export default function RecommendationCard({
                             className="w-full h-full object-cover"
                         />
                     ) : (
-                        <div
-                            className="w-full h-full flex items-center justify-center"
-                            style={{ backgroundColor: styles.bgLight }}
-                        >
+                        <div className="w-full h-full flex items-center justify-center">
                             <div style={{ color: styles.color }}>{styles.icon}</div>
                         </div>
                     )}
@@ -95,129 +93,113 @@ export default function RecommendationCard({
 
                 {/* Title and Subtitle */}
                 <div className="flex-grow overflow-hidden">
-                    <h3 className="font-medium text-gray-900 truncate">
+                    <h3 className="font-medium text-lg mb-1" style={{ color: 'var(--md-sys-color-on-surface)' }}>
                         {recommendation.title}
                     </h3>
-                    <p className="text-xs text-gray-500 truncate">
+                    <p className="text-sm" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>
                         {recommendation.author || recommendation.artist || styles.label}
                     </p>
                 </div>
 
                 {/* Match Score and Save Button */}
                 <div className="ml-2 flex items-center gap-2">
-                    <button
+                    <IconButton
+                        variant={isSaved ? "filled" : "standard"}
                         onClick={(e) => onSave(recommendation.id, e)}
-                        className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors ${isSaved ? 'bg-amber-50' : 'bg-gray-100'
-                            }`}
                     >
-                        <Star
-                            size={16}
-                            className={isSaved ? 'text-amber-500 fill-amber-500' : 'text-gray-400'}
-                        />
-                    </button>
+                        <Star size={20} className={isSaved ? 'fill-current' : ''} />
+                    </IconButton>
 
-                    <div
-                        className="flex items-center justify-center rounded-full w-8 h-8"
-                        style={{ backgroundColor: styles.bgLight }}
-                    >
-                        <span
-                            className="text-xs font-bold"
-                            style={{ color: styles.color }}
-                        >
-                            {recommendation.matchScore}%
-                        </span>
-                    </div>
+                    <Chip
+                        variant="assist"
+                        label={`${recommendation.matchScore}%`}
+                    />
                 </div>
             </div>
 
             {/* Expandable Content */}
-            <div
-                className={`overflow-hidden transition-all duration-300 ${isExpanded ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
-                    }`}
-            >
-                <div className="p-3 border-b border-gray-100">
+            <div className={`overflow-hidden transition-all duration-300 ${isExpanded ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'}`}>
+                <div className="px-4 pb-4">
                     {/* Tags Row */}
-                    <div className="flex flex-wrap gap-1 mb-3">
-                        <span
-                            className="text-xs px-2 py-1 rounded-full"
-                            style={{ backgroundColor: styles.bgLight, color: styles.color }}
-                        >
-                            {recommendation.mood}
-                        </span>
+                    <div className="flex flex-wrap gap-2 mb-4">
+                        <Chip
+                            variant="suggestion"
+                            label={recommendation.mood}
+                        />
 
                         {recommendation.duration && (
-                            <span className="text-xs px-2 py-1 bg-gray-100 text-gray-600 rounded-full">
-                                {recommendation.duration}
-                            </span>
+                            <Chip
+                                variant="suggestion"
+                                label={recommendation.duration}
+                            />
                         )}
 
                         {recommendation.difficulty && (
-                            <span className={`text-xs px-2 py-1 rounded-full ${recommendation.difficulty === 'Easy' ? 'bg-green-50 text-green-600' :
-                                    recommendation.difficulty === 'Medium' ? 'bg-yellow-50 text-yellow-600' :
-                                        'bg-red-50 text-red-600'
-                                }`}>
-                                {recommendation.difficulty}
-                            </span>
+                            <Chip
+                                variant="suggestion"
+                                label={recommendation.difficulty}
+                            />
                         )}
                     </div>
 
                     {/* Description */}
-                    <p className="text-sm text-gray-600 mb-3">
+                    <p className="text-sm mb-4" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>
                         {recommendation.description}
                     </p>
 
                     {/* AI Reason */}
                     {recommendation.aiReason && (
-                        <div className="mb-3 p-2 rounded-lg" style={{ backgroundColor: styles.bgLight }}>
+                        <Card variant="filled" className="mb-4 p-3">
                             <div className="flex items-start">
-                                <Sparkles size={14} style={{ color: styles.color }} className="mt-0.5 mr-2 flex-shrink-0" />
-                                <p className="text-xs" style={{ color: styles.color }}>
+                                <Sparkles size={16} style={{ color: 'var(--md-sys-color-primary)' }} className="mt-0.5 mr-2 flex-shrink-0" />
+                                <p className="text-sm" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>
                                     {recommendation.aiReason}
                                 </p>
                             </div>
-                        </div>
+                        </Card>
                     )}
 
                     {/* Action Button */}
                     {recommendation.link && (
-                        <a
-                            href={recommendation.link}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="flex items-center justify-center gap-1 w-full py-2.5 rounded-lg text-white text-sm font-medium mt-2"
-                            style={{ backgroundColor: styles.color }}
-                            onClick={(e) => e.stopPropagation()}
+                        <Button
+                            variant="filled"
+                            className="w-full"
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                window.open(recommendation.link, '_blank');
+                            }}
+                            hasIcon
                         >
                             {styles.action}
-                            <ExternalLink size={14} />
-                        </a>
+                            <ExternalLink size={16} />
+                        </Button>
                     )}
                 </div>
             </div>
 
             {/* Card Footer */}
-            <div className="px-3 py-2 flex items-center justify-between bg-gray-50">
+            <div className="px-4 py-3 flex items-center justify-between" style={{ backgroundColor: 'var(--md-sys-color-surface-container-low)' }}>
                 <div className="flex items-center">
                     <div
-                        className="w-4 h-4 rounded-full flex items-center justify-center mr-2"
+                        className="w-5 h-5 rounded-full flex items-center justify-center mr-2"
                         style={{ backgroundColor: styles.color }}
                     >
-                        <div className="text-white" style={{ transform: 'scale(0.7)' }}>
+                        <div className="text-white" style={{ transform: 'scale(0.8)' }}>
                             {styles.icon}
                         </div>
                     </div>
 
-                    <span className="text-xs text-gray-500">
+                    <span className="text-sm" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>
                         {isExpanded ? 'Tap to collapse' : 'Tap to learn more'}
                     </span>
                 </div>
 
                 <ChevronRight
-                    size={16}
-                    className={`text-gray-400 transition-transform duration-300 ${isExpanded ? 'rotate-90' : ''
-                        }`}
+                    size={20}
+                    className={`transition-transform duration-300 ${isExpanded ? 'rotate-90' : ''}`}
+                    style={{ color: 'var(--md-sys-color-on-surface-variant)' }}
                 />
             </div>
-        </div>
+        </Card>
     );
 }

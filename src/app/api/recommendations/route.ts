@@ -48,7 +48,7 @@ export async function POST(request: NextRequest) {
     }
 
     const db = await getDb();
-    
+
     // Get user's recent journal entries for context
     const recentEntries = await db
       .collection('journalEntries')
@@ -84,7 +84,7 @@ export async function POST(request: NextRequest) {
       const result = await db.collection('recommendations').insertMany(recommendations);
       return createResponse({
         message: 'Recommendations generated successfully',
-        recommendations: recommendations.map((rec, index) => ({
+        recommendations: recommendations.map((rec: any, index: number) => ({
           ...rec,
           _id: result.insertedIds[index]
         }))

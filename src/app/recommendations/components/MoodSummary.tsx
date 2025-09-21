@@ -1,6 +1,7 @@
 'use client';
 
 import { Trophy, Heart, Lightbulb } from 'lucide-react';
+import { Card, Chip } from '@/app/components/MaterialComponents';
 
 interface MoodAnalysis {
     primary: string;
@@ -16,22 +17,22 @@ interface MoodSummaryProps {
 
 export default function MoodSummary({ moodAnalysis, todaysEntries }: MoodSummaryProps) {
     return (
-        <div className="px-4 py-3 border-b border-gray-100 bg-gray-50">
+        <div className="mt-4">
             <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                    <div className="w-10 h-10 rounded-full flex items-center justify-center"
-                        style={{ backgroundColor: 'var(--janya-primary)' }}>
+                <div className="flex items-center gap-3">
+                    <div className="w-12 h-12 rounded-full flex items-center justify-center"
+                        style={{ backgroundColor: 'var(--md-sys-color-primary-container)' }}>
                         {moodAnalysis.sentiment === 'positive' ?
-                            <Trophy size={18} className="text-white" /> :
+                            <Trophy size={20} style={{ color: 'var(--md-sys-color-on-primary-container)' }} /> :
                             moodAnalysis.sentiment === 'negative' ?
-                                <Heart size={18} className="text-white" /> :
-                                <Lightbulb size={18} className="text-white" />
+                                <Heart size={20} style={{ color: 'var(--md-sys-color-on-primary-container)' }} /> :
+                                <Lightbulb size={20} style={{ color: 'var(--md-sys-color-on-primary-container)' }} />
                         }
                     </div>
 
                     <div>
-                        <div className="flex items-center gap-1">
-                            <p className="font-bold" style={{ color: 'var(--janya-primary)' }}>
+                        <div className="flex items-center gap-2">
+                            <p className="font-bold text-lg" style={{ color: 'var(--md-sys-color-primary)' }}>
                                 {moodAnalysis.primary}
                             </p>
                             <span className="text-xl">
@@ -39,19 +40,21 @@ export default function MoodSummary({ moodAnalysis, todaysEntries }: MoodSummary
                                     moodAnalysis.sentiment === 'negative' ? '💙' : '🌱'}
                             </span>
                         </div>
-                        <p className="text-xs text-gray-500">
+                        <p className="text-sm" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>
                             {todaysEntries.length} journal entries today
                         </p>
                     </div>
                 </div>
 
-                <div className="flex gap-1 text-sm">
-                    <div className="px-2 py-1 bg-white rounded-lg border border-gray-200 text-xs font-medium">
-                        <span className="text-gray-500">Energy:</span> {moodAnalysis.energyLevel}/10
-                    </div>
-                    <div className="px-2 py-1 bg-white rounded-lg border border-gray-200 text-xs font-medium">
-                        <span className="text-gray-500">Stress:</span> {moodAnalysis.stressLevel}/10
-                    </div>
+                <div className="flex gap-2">
+                    <Chip
+                        variant="suggestion"
+                        label={`Energy: ${moodAnalysis.energyLevel}/10`}
+                    />
+                    <Chip
+                        variant="suggestion"
+                        label={`Stress: ${moodAnalysis.stressLevel}/10`}
+                    />
                 </div>
             </div>
         </div>

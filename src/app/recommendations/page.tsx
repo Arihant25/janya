@@ -2,14 +2,13 @@
 
 import { useState, useEffect } from 'react';
 import { Book, Music, Activity, Heart, ArrowLeft, RefreshCw, Loader2, Volume2, BookOpen, Search } from 'lucide-react';
+import { Card, Button, IconButton, TextField, LinearProgress, Chip, ChipSet, FAB, List, ListItem, Divider } from '@/app/components/MaterialComponents';
+import withAuth from '@/components/withAuth';
+import Navigation from '@/app/components/Navigation';
 
 // Components
 import RecommendationCard from './components/RecommendationCard';
-import TabButton from './components/TabButton';
 import MoodSummary from './components/MoodSummary';
-import SearchBar from './components/SearchBar';
-import LoadingScreen from './components/LoadingScreen';
-import EmptyState from './components/EmptyState';
 
 interface JournalEntry {
   id: string;
@@ -320,7 +319,7 @@ const generateAIRecommendations = async (moodAnalysis: MoodAnalysis, journalEntr
 };
 
 // Main Component
-export default function RecommendationsPage() {
+function RecommendationsPageComponent() {
   const [recommendations, setRecommendations] = useState<Recommendation[]>([]);
   const [activeFilter, setActiveFilter] = useState<'all' | 'book' | 'music' | 'activity'>('all');
   const [moodAnalysis, setMoodAnalysis] = useState<MoodAnalysis | null>(null);
@@ -331,37 +330,6 @@ export default function RecommendationsPage() {
   const [lastAnalyzed, setLastAnalyzed] = useState<Date | null>(null);
   const [expandedCard, setExpandedCard] = useState<string | null>(null);
   const [savedItems, setSavedItems] = useState<string[]>([]);
-
-  // Function to get dynamic theme colors based on mood analysis
-  const getThemeColors = () => {
-    if (!moodAnalysis) return {};
-
-    const moodColorMap = {
-      happy: { primary: '#4CAF50', secondary: '#8BC34A', accent: '#FFEB3B' },
-      excited: { primary: '#FF9800', secondary: '#FFC107', accent: '#FFEB3B' },
-      grateful: { primary: '#9C27B0', secondary: '#BA68C8', accent: '#E1BEE7' },
-      calm: { primary: '#03A9F4', secondary: '#81D4FA', accent: '#B3E5FC' },
-      reflective: { primary: '#607D8B', secondary: '#90A4AE', accent: '#CFD8DC' },
-      thoughtful: { primary: '#3F51B5', secondary: '#7986CB', accent: '#C5CAE9' },
-      anxious: { primary: '#FF5722', secondary: '#FF8A65', accent: '#FFCCBC' },
-      stressed: { primary: '#F44336', secondary: '#EF5350', accent: '#FFCDD2' },
-      sad: { primary: '#2196F3', secondary: '#64B5F6', accent: '#BBDEFB' },
-      tired: { primary: '#795548', secondary: '#A1887F', accent: '#D7CCC8' }
-    };
-
-    const defaultColors = { primary: '#673AB7', secondary: '#9575CD', accent: '#D1C4E9' };
-    return moodColorMap[moodAnalysis.primary as keyof typeof moodColorMap] || defaultColors;
-  };
-
-  // Apply theme colors
-  useEffect(() => {
-    const colors = getThemeColors();
-    if (Object.keys(colors).length > 0) {
-      document.documentElement.style.setProperty('--janya-primary', colors.primary);
-      document.documentElement.style.setProperty('--janya-secondary', colors.secondary);
-      document.documentElement.style.setProperty('--janya-accent', colors.accent);
-    }
-  }, [moodAnalysis]);
 
   // Initialize and analyze mood
   useEffect(() => {
@@ -471,17 +439,19 @@ export default function RecommendationsPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="w-full max-w-md p-6 text-center">
-          <div className="w-20 h-20 mx-auto mb-6 bg-gradient-to-r from-[var(--janya-primary)] to-[var(--janya-secondary)] rounded-full flex items-center justify-center">
-            <Loader2 size={32} className="text-white animate-spin" />
-          </div>
-          <h3 className="text-xl font-bold mb-2">Creating your recommendations</h3>
-          <p className="text-gray-500 mb-4">Analyzing your journal entries to find the perfect match for your mood today</p>
-
-          <div className="w-full bg-gray-200 h-2 rounded-full overflow-hidden">
-            <div className="h-full bg-[var(--janya-primary)] animate-pulse" style={{ width: '75%' }}></div>
-          </div>
+      <div className="min-h-screen" style={{ backgroundColor: 'var(--md-sys-color-surface)' }}>
+        <Navigation />
+        <div className="flex items-center justify-center h-[calc(100vh-80px)]">
+          <Card variant="filled" className="w-full max-w-md p-6 text-center mx-4">
+            <div className="mb-6">
+              <LinearProgress indeterminate />
+            </div>
+            <div className="mb-6">
+              <Loader2 size={32} className="mx-auto animate-spin" style={{ color: 'var(--md-sys-color-primary)' }} />
+            </div>
+            <h3 className="text-xl font-bold mb-2" style={{ color: 'var(--md-sys-color-on-surface)' }}>Creating your recommendations</h3>
+            <p className="mb-4" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>Analyzing your journal entries to find the perfect match for your mood today</p>
+          </Card>
         </div>
       </div>
     );
@@ -489,175 +459,155 @@ export default function RecommendationsPage() {
 
   if (todaysEntries.length === 0) {
     return (
-      <div className="min-h-screen p-4 bg-gray-50 flex items-center justify-center">
-        <div className="w-full max-w-md bg-white rounded-3xl p-8 shadow-md text-center">
-          <div className="w-20 h-20 mx-auto mb-6 bg-gray-100 rounded-full flex items-center justify-center">
-            <Book size={32} className="text-gray-400" />
-          </div>
-          <h3 className="text-xl font-bold mb-2">No journal entries yet</h3>
-          <p className="text-gray-500 mb-6">Write in your journal today to get personalized recommendations based on your mood</p>
+      <div className="min-h-screen" style={{ backgroundColor: 'var(--md-sys-color-surface)' }}>
+        <Navigation />
+        <div className="p-4 flex items-center justify-center h-[calc(100vh-120px)]">
+          <Card variant="elevated" className="w-full max-w-md p-8 text-center">
+            <div className="w-20 h-20 mx-auto mb-6 rounded-full flex items-center justify-center" style={{ backgroundColor: 'var(--md-sys-color-surface-container)' }}>
+              <Book size={32} style={{ color: 'var(--md-sys-color-on-surface-variant)' }} />
+            </div>
+            <h3 className="text-xl font-bold mb-2" style={{ color: 'var(--md-sys-color-on-surface)' }}>No journal entries yet</h3>
+            <p className="mb-6" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>Write in your journal today to get personalized recommendations based on your mood</p>
 
-          <button
-            onClick={() => window.location.href = '/journal'}
-            className="w-full py-3 rounded-xl bg-[var(--janya-primary)] text-white font-medium"
-          >
-            Start Journaling
-          </button>
+            <Button
+              variant="filled"
+              className="w-full"
+              onClick={() => window.location.href = '/journal'}
+            >
+              Start Journaling
+            </Button>
 
-          <p className="mt-4 text-sm text-gray-400">
-            Your recommendations will appear here once you've written about your day
-          </p>
+            <p className="mt-4 text-sm" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>
+              Your recommendations will appear here once you've written about your day
+            </p>
+          </Card>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header with fixed positioning */}
-      <div className="sticky top-0 z-30 bg-white shadow-sm">
-        {/* Top Bar */}
-        <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
-          <button
-            onClick={() => window.history.back()}
-            className="w-9 h-9 flex items-center justify-center rounded-full bg-gray-100"
-          >
-            <ArrowLeft size={18} className="text-gray-700" />
-          </button>
+    <div className="min-h-screen" style={{ backgroundColor: 'var(--md-sys-color-surface)' }}>
+      <Navigation />
 
-          <div className="text-center">
-            <h1 className="text-lg font-bold">Recommendations</h1>
-            <p className="text-xs text-gray-500">Based on today's mood</p>
-          </div>
-
-          <button
-            onClick={refreshRecommendations}
-            disabled={isRefreshing}
-            className="w-9 h-9 flex items-center justify-center rounded-full bg-gray-100"
-          >
-            <RefreshCw size={18} className={`text-gray-700 ${isRefreshing ? "animate-spin" : ""}`} />
-          </button>
-        </div>
-
-        {/* Mood Summary */}
-        {moodAnalysis && (
-          <MoodSummary
-            moodAnalysis={moodAnalysis}
-            todaysEntries={todaysEntries}
-          />
-        )}
-
-        {/* Search Bar - Moved up to avoid bottom menu overlap */}
-        <SearchBar
-          searchQuery={searchQuery}
-          onSearchChange={setSearchQuery}
-        />
-
-        {/* Tab Navigation */}
-        <div className="flex bg-white p-2 border-b border-gray-100">
-          <TabButton
-            active={activeFilter === 'all'}
-            onClick={() => setActiveFilter('all')}
-            icon={<Heart size={16} />}
-            label="All"
-            count={counts.all}
-            color="var(--janya-primary)"
-          />
-          <TabButton
-            active={activeFilter === 'book'}
-            onClick={() => setActiveFilter('book')}
-            icon={<BookOpen size={16} />}
-            label="Books"
-            count={counts.book}
-            color="#4285F4"
-          />
-          <TabButton
-            active={activeFilter === 'music'}
-            onClick={() => setActiveFilter('music')}
-            icon={<Volume2 size={16} />}
-            label="Music"
-            count={counts.music}
-            color="#DB4437"
-          />
-          <TabButton
-            active={activeFilter === 'activity'}
-            onClick={() => setActiveFilter('activity')}
-            icon={<Activity size={16} />}
-            label="Activities"
-            count={counts.activity}
-            color="#0F9D58"
-          />
-        </div>
-      </div>
-
-      {/* Content Area - Added extra padding to avoid bottom menu overlap */}
-      <div className="px-4 pt-4 pb-32">
-        {filteredRecommendations.length > 0 ? (
-          <div className="grid grid-cols-1 gap-3">
-            {filteredRecommendations.map((recommendation) => (
-              <RecommendationCard
-                key={recommendation.id}
-                recommendation={recommendation}
-                onClick={handleRecommendationClick}
-                isExpanded={expandedCard === recommendation.id}
-                isSaved={savedItems.includes(recommendation.id)}
-                onSave={toggleSaveItem}
-              />
-            ))}
-          </div>
-        ) : (
-          <div className="flex flex-col items-center justify-center py-12">
-            <div className="w-16 h-16 mb-4 bg-gray-100 rounded-full flex items-center justify-center">
-              <Search size={24} className="text-gray-400" />
+      <div className="max-w-4xl mx-auto">
+        {/* Header */}
+        <Card variant="filled" className="m-4 p-6">
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h1 className="text-2xl font-bold" style={{ color: 'var(--md-sys-color-on-surface)' }}>
+                Recommendations
+              </h1>
+              <p className="text-sm" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>
+                Based on today's mood
+              </p>
             </div>
-            <h3 className="font-semibold text-gray-900 mb-2">No matches found</h3>
-            <p className="text-gray-500 text-sm mb-6 text-center max-w-xs">
-              Try adjusting your search or selecting a different category
-            </p>
-            <button
-              onClick={() => {
-                setSearchQuery('');
-                setActiveFilter('all');
-              }}
-              className="px-4 py-2 rounded-full text-white text-sm font-medium bg-[var(--janya-primary)]"
+
+            <IconButton
+              variant="filled-tonal"
+              onClick={refreshRecommendations}
+              disabled={isRefreshing}
             >
-              Clear Filters
-            </button>
+              <RefreshCw size={20} className={isRefreshing ? "animate-spin" : ""} />
+            </IconButton>
           </div>
-        )}
-      </div>
 
-      {/* Floating Journal Button */}
-      <div className="fixed bottom-24 right-4 z-20">
-        <button
-          onClick={() => window.location.href = '/journal'}
-          className="w-12 h-12 rounded-full flex items-center justify-center shadow-lg text-white"
-          style={{ backgroundColor: 'var(--janya-primary)' }}
-        >
-          <Book size={20} />
-        </button>
-      </div>
+          {/* Mood Summary */}
+          {moodAnalysis && (
+            <MoodSummary
+              moodAnalysis={moodAnalysis}
+              todaysEntries={todaysEntries}
+            />
+          )}
+        </Card>
 
-      {/* Global styles */}
-      <style jsx global>{`
-        :root {
-          --janya-primary: #673AB7;
-          --janya-secondary: #9C27B0;
-          --janya-accent: #D1C4E9;
-          --janya-warm-gradient: linear-gradient(135deg, var(--janya-primary), var(--janya-secondary));
-          --janya-text-primary: #1f2937;
-          --janya-text-secondary: #4b5563;
-        }
-        
-        @keyframes pulse {
-          0%, 100% { transform: scale(1); }
-          50% { transform: scale(1.05); }
-        }
-        
-        .animate-pulse-slow {
-          animation: pulse 3s infinite;
-        }
-      `}</style>
+        {/* Search and Filters */}
+        <Card variant="outlined" className="m-4 p-4">
+          {/* Search Bar */}
+          <div className="mb-4">
+            <TextField
+              variant="outlined"
+              label="Search recommendations"
+              value={searchQuery}
+              onInput={(e) => setSearchQuery((e.target as HTMLInputElement).value)}
+              className="w-full"
+              hasLeadingIcon
+            >
+              <div slot="leading-icon" className="flex items-center justify-center">
+                <Search size={20} />
+              </div>
+            </TextField>
+          </div>
+
+          {/* Filter Chips */}
+          <div className="flex flex-wrap gap-2">
+            <Chip
+              variant="filter"
+              label={`All (${counts.all})`}
+              selected={activeFilter === 'all'}
+              onClick={() => setActiveFilter('all')}
+            />
+            <Chip
+              variant="filter"
+              label={`Books (${counts.book})`}
+              selected={activeFilter === 'book'}
+              onClick={() => setActiveFilter('book')}
+            />
+            <Chip
+              variant="filter"
+              label={`Music (${counts.music})`}
+              selected={activeFilter === 'music'}
+              onClick={() => setActiveFilter('music')}
+            />
+            <Chip
+              variant="filter"
+              label={`Activities (${counts.activity})`}
+              selected={activeFilter === 'activity'}
+              onClick={() => setActiveFilter('activity')}
+            />
+          </div>
+        </Card>
+
+        {/* Content */}
+        <div className="m-4 mb-32">
+          {filteredRecommendations.length > 0 ? (
+            <div className="space-y-4">
+              {filteredRecommendations.map((recommendation) => (
+                <RecommendationCard
+                  key={recommendation.id}
+                  recommendation={recommendation}
+                  onClick={handleRecommendationClick}
+                  isExpanded={expandedCard === recommendation.id}
+                  isSaved={savedItems.includes(recommendation.id)}
+                  onSave={toggleSaveItem}
+                />
+              ))}
+            </div>
+          ) : (
+            <Card variant="outlined" className="p-8 text-center">
+              <div className="w-16 h-16 mb-4 mx-auto rounded-full flex items-center justify-center" style={{ backgroundColor: 'var(--md-sys-color-surface-container)' }}>
+                <Search size={24} style={{ color: 'var(--md-sys-color-on-surface-variant)' }} />
+              </div>
+              <h3 className="font-semibold mb-2" style={{ color: 'var(--md-sys-color-on-surface)' }}>No matches found</h3>
+              <p className="text-sm mb-6" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>
+                Try adjusting your search or selecting a different category
+              </p>
+              <Button
+                variant="filled"
+                onClick={() => {
+                  setSearchQuery('');
+                  setActiveFilter('all');
+                }}
+              >
+                Clear Filters
+              </Button>
+            </Card>
+          )}
+        </div>
+
+      </div>
     </div>
   );
 }
+
+export default withAuth(RecommendationsPageComponent);

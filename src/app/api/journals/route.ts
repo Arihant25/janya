@@ -91,7 +91,7 @@ export async function POST(request: NextRequest) {
       mood: (mood || 'neutral') as JournalEntry['mood'],
       tags,
       theme,
-      wordCount: content?.trim() ? content.trim().split(' ').filter(word => word.length > 0).length : 0,
+      wordCount: content?.trim() ? content.trim().split(' ').filter((word: string) => word.length > 0).length : 0,
       photo,
       audioRecording,
       weather,
@@ -172,7 +172,7 @@ async function updateUserStats(db: any, userId: ObjectId, mood: string, tags: st
 async function checkAchievements(db: any, userId: ObjectId) {
   const stats = await db.collection('userStats').findOne({ userId });
   const existingAchievements = await db.collection('achievements').find({ userId }).toArray();
-  const achievementIds = existingAchievements.map(a => a.achievementId);
+  const achievementIds = existingAchievements.map((a: any) => a.achievementId);
 
   const newAchievements = [];
 

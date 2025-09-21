@@ -4,6 +4,8 @@ import { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { Card, Button, TextField, LinearProgress } from '@/app/components/MaterialComponents';
+import { Sparkles, User, Mail, Lock, LockKeyhole, AlertCircle, Clock } from 'lucide-react';
 
 export default function RegisterPage() {
   const [name, setName] = useState('');
@@ -43,106 +45,127 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-50 to-pink-50">
-      <div className="max-w-md w-full space-y-8 p-8">
-        <div className="text-center">
-          <h2 className="text-3xl font-bold text-gray-900">Join Janya</h2>
-          <p className="mt-2 text-gray-600">Start your journaling journey today</p>
+    <div className="min-h-screen flex items-center justify-center p-4"
+      style={{ backgroundColor: 'var(--md-sys-color-surface-container-low)' }}>
+      <Card variant="elevated" className="w-full max-w-md p-6">
+        <div className="text-center mb-8">
+          <div className="flex items-center justify-center mb-4">
+            <Sparkles className="w-16 h-16" style={{ color: 'var(--md-sys-color-primary)' }} />
+          </div>
+          <h1 className="text-2xl font-bold mb-2" style={{ color: 'var(--md-sys-color-on-surface)' }}>
+            Join Janya
+          </h1>
+          <p className="text-sm" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>
+            Start your journaling journey today
+          </p>
         </div>
-        
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-          {error && (
-            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
-              {error}
-            </div>
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {isLoading && (
+            <LinearProgress indeterminate className="mb-4" />
           )}
-          
+
+          {error && (
+            <Card variant="filled" className="p-3 mb-4"
+              style={{ backgroundColor: 'var(--md-sys-color-error-container)' }}>
+              <div className="flex items-center gap-2">
+                <AlertCircle className="w-5 h-5" style={{ color: 'var(--md-sys-color-on-error-container)' }} />
+                <span className="text-sm" style={{ color: 'var(--md-sys-color-on-error-container)' }}>
+                  {error}
+                </span>
+              </div>
+            </Card>
+          )}
+
           <div className="space-y-4">
-            <div>
-              <label htmlFor="name" className="block text-sm font-medium text-gray-700">
-                Full Name
-              </label>
-              <input
-                id="name"
-                name="name"
+            <div className="relative">
+              <TextField
+                label="Full Name"
                 type="text"
                 required
                 value={name}
-                onChange={(e) => setName(e.target.value)}
-                className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-purple-500 focus:border-purple-500 focus:z-10 sm:text-sm"
-                placeholder="Enter your full name"
+                onInput={(e) => setName((e.target as HTMLInputElement).value)}
+                className="w-full"
               />
+              <User className="w-5 h-5 absolute left-3 top-1/2 transform -translate-y-1/2 pointer-events-none"
+                style={{ color: 'var(--md-sys-color-on-surface-variant)' }} />
             </div>
 
-            <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-                Email address
-              </label>
-              <input
-                id="email"
-                name="email"
+            <div className="relative">
+              <TextField
+                label="Email address"
                 type="email"
                 required
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-purple-500 focus:border-purple-500 focus:z-10 sm:text-sm"
-                placeholder="Enter your email"
+                onInput={(e) => setEmail((e.target as HTMLInputElement).value)}
+                className="w-full"
               />
+              <Mail className="w-5 h-5 absolute left-3 top-1/2 transform -translate-y-1/2 pointer-events-none"
+                style={{ color: 'var(--md-sys-color-on-surface-variant)' }} />
             </div>
-            
-            <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700">
-                Password
-              </label>
-              <input
-                id="password"
-                name="password"
+
+            <div className="relative">
+              <TextField
+                label="Password"
                 type="password"
                 required
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-purple-500 focus:border-purple-500 focus:z-10 sm:text-sm"
-                placeholder="Create a password (min 6 characters)"
+                onInput={(e) => setPassword((e.target as HTMLInputElement).value)}
+                className="w-full"
+                supportingText="Minimum 6 characters"
               />
+              <Lock className="w-5 h-5 absolute left-3 top-1/2 transform -translate-y-1/2 pointer-events-none"
+                style={{ color: 'var(--md-sys-color-on-surface-variant)' }} />
             </div>
 
-            <div>
-              <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700">
-                Confirm Password
-              </label>
-              <input
-                id="confirmPassword"
-                name="confirmPassword"
+            <div className="relative">
+              <TextField
+                label="Confirm Password"
                 type="password"
                 required
                 value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-purple-500 focus:border-purple-500 focus:z-10 sm:text-sm"
-                placeholder="Confirm your password"
+                onInput={(e) => setConfirmPassword((e.target as HTMLInputElement).value)}
+                className="w-full"
+                error={confirmPassword !== '' && password !== confirmPassword}
+                errorText={confirmPassword !== '' && password !== confirmPassword ? 'Passwords do not match' : ''}
               />
+              <LockKeyhole className="w-5 h-5 absolute left-3 top-1/2 transform -translate-y-1/2 pointer-events-none"
+                style={{ color: 'var(--md-sys-color-on-surface-variant)' }} />
             </div>
           </div>
 
-          <div>
-            <button
+          <div className="pt-4">
+            <Button
               type="submit"
+              variant="filled"
               disabled={isLoading}
-              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full"
             >
-              {isLoading ? 'Creating account...' : 'Create account'}
-            </button>
+              {isLoading ? (
+                <div className="flex items-center gap-2">
+                  <Clock className="w-5 h-5" />
+                  Creating account...
+                </div>
+              ) : (
+                'Create account'
+              )}
+            </Button>
           </div>
 
-          <div className="text-center">
-            <p className="text-sm text-gray-600">
+          <div className="text-center pt-4">
+            <p className="text-sm" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>
               Already have an account?{' '}
-              <Link href="/auth/login" className="font-medium text-purple-600 hover:text-purple-500">
+              <Link
+                href="/auth/login"
+                className="font-medium hover:underline"
+                style={{ color: 'var(--md-sys-color-primary)' }}
+              >
                 Sign in
               </Link>
             </p>
           </div>
         </form>
-      </div>
+      </Card>
     </div>
   );
 }

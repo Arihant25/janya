@@ -5,18 +5,20 @@ import { geminiService } from '@/lib/gemini';
 import { JournalEntry } from '@/types/database';
 import { ObjectId } from 'mongodb';
 
-export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const user = await getUserFromRequest(request);
     if (!user) {
       return createErrorResponse('Unauthorized', 401);
     }
 
+    const { id } = await params;
+
     const db = await getDb();
     const entry = await db
       .collection('journalEntries')
       .findOne({
-        _id: new ObjectId(params.id),
+        _id: new ObjectId(id),
         userId: user._id
       });
 
@@ -53,12 +55,14 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
   }
 }
 
-export async function PATCH(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const user = await getUserFromRequest(request);
     if (!user) {
       return createErrorResponse('Unauthorized', 401);
     }
+
+    const { id } = await params;
 
     const { title, content, mood, tags = [], photo, audioRecording, weather, location } = await request.json();
 
@@ -77,7 +81,7 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
 
     // Check if entry exists and belongs to user
     const existingEntry = await db.collection('journalEntries').findOne({
-      _id: new ObjectId(params.id),
+      _id: new ObjectId(id),
       userId: user._id
     });
 
@@ -105,7 +109,7 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
       mood: (mood || 'neutral') as JournalEntry['mood'],
       tags,
       theme,
-      wordCount: content?.trim() ? content.trim().split(' ').filter(word => word.length > 0).length : 0,
+      wordCount: content?.trim() ? content.trim().split(' ').filter((word: string) => word.length > 0).length : 0,
       photo,
       audioRecording,
       weather,
@@ -115,13 +119,13 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
     };
 
     await db.collection('journalEntries').updateOne(
-      { _id: new ObjectId(params.id) },
+      { _id: new ObjectId(id) },
       { $set: updateData }
     );
 
     return createResponse({
       message: 'Journal entry updated successfully',
-      entry: { ...updateData, _id: params.id }
+      entry: { ...updateData, _id: id }
     });
   } catch (error) {
     console.error('Update entry error:', error);
@@ -129,18 +133,20 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
   }
 }
 
-export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const user = await getUserFromRequest(request);
     if (!user) {
       return createErrorResponse('Unauthorized', 401);
     }
 
+    const { id } = await params;
+
     const db = await getDb();
 
     // Check if entry exists and belongs to user
     const existingEntry = await db.collection('journalEntries').findOne({
-      _id: new ObjectId(params.id),
+      _id: new ObjectId(id),
       userId: user._id
     });
 
@@ -149,7 +155,7 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
     }
 
     // Delete the journal entry
-    await db.collection('journalEntries').deleteOne({ _id: new ObjectId(params.id) });
+    await db.collection('journalEntries').deleteOne({ _id: new ObjectId(id) });
 
     // Update user stats (decrement counts)
     await updateUserStatsAfterDeletion(db, user._id, existingEntry.mood);

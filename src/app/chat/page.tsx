@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { Send, Bot, User, Sparkles, RefreshCw, MessageCircle } from 'lucide-react';
+import { Card, Button, IconButton, TextField, LinearProgress, List, ListItem, FAB, Chip } from '@/app/components/MaterialComponents';
 import withAuth from '@/components/withAuth';
 import Navigation from '@/app/components/Navigation';
 import { useAuth } from '@/contexts/AuthContext';
@@ -160,10 +161,10 @@ function ChatPageComponent() {
       setMessages(prev => prev.map(msg =>
         msg.id === aiMessageId
           ? {
-              ...msg,
-              content: 'I apologize, but I encountered an error processing your message. Please try again.',
-              streaming: false
-            }
+            ...msg,
+            content: 'I apologize, but I encountered an error processing your message. Please try again.',
+            streaming: false
+          }
           : msg
       ));
       setStreamingMessageId(null);
@@ -224,25 +225,23 @@ function ChatPageComponent() {
 
       <div className="max-w-4xl mx-auto">
         {/* Chat Header */}
-        <div className="sticky top-0 bg-white border-b border-gray-200 z-10">
-          <div className="px-4 py-4">
+        <div className="sticky top-0 bg-white border-b border-gray-200 z-10 shadow-sm">
+          <div className="px-6 py-4">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center">
                 <Bot size={20} className="text-white" />
               </div>
-              <div>
+              <div className="flex-grow">
                 <h1 className="font-semibold text-gray-900">Janya</h1>
                 <p className="text-sm text-gray-500">Your wellness companion</p>
               </div>
-              <div className="ml-auto">
-                <button
-                  onClick={loadChatHistory}
-                  className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-                  title="Refresh chat"
-                >
-                  <RefreshCw size={18} className="text-gray-600" />
-                </button>
-              </div>
+              <button
+                onClick={loadChatHistory}
+                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                title="Refresh chat"
+              >
+                <RefreshCw size={18} className="text-gray-600" />
+              </button>
             </div>
           </div>
         </div>
@@ -252,11 +251,10 @@ function ChatPageComponent() {
           {messages.map((message) => (
             <div key={message.id} className={`flex gap-3 ${message.role === 'user' ? 'flex-row-reverse' : ''}`}>
               {/* Avatar */}
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
-                message.role === 'user'
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${message.role === 'user'
                   ? 'bg-blue-500'
                   : 'bg-gradient-to-r from-purple-500 to-pink-500'
-              }`}>
+                }`}>
                 {message.role === 'user' ? (
                   <User size={16} className="text-white" />
                 ) : (
@@ -265,14 +263,12 @@ function ChatPageComponent() {
               </div>
 
               {/* Message */}
-              <div className={`flex-1 max-w-xs sm:max-w-sm md:max-w-md lg:max-w-lg ${
-                message.role === 'user' ? 'text-right' : ''
-              }`}>
-                <div className={`p-3 rounded-2xl ${
-                  message.role === 'user'
-                    ? 'bg-blue-500 text-white'
-                    : 'bg-white border border-gray-200 text-gray-800'
+              <div className={`flex-1 max-w-xs sm:max-w-sm md:max-w-md lg:max-w-lg ${message.role === 'user' ? 'text-right' : ''
                 }`}>
+                <div className={`p-3 rounded-2xl ${message.role === 'user'
+                    ? 'bg-blue-500 text-white'
+                    : 'bg-white border border-gray-200 text-gray-800 shadow-sm'
+                  }`}>
                   <p className="whitespace-pre-wrap leading-relaxed">
                     {message.content}
                     {message.streaming && (
@@ -280,9 +276,8 @@ function ChatPageComponent() {
                     )}
                   </p>
                 </div>
-                <p className={`text-xs text-gray-500 mt-1 ${
-                  message.role === 'user' ? 'text-right' : ''
-                }`}>
+                <p className={`text-xs text-gray-500 mt-1 ${message.role === 'user' ? 'text-right' : ''
+                  }`}>
                   {formatTime(message.timestamp)}
                 </p>
               </div>
@@ -298,7 +293,7 @@ function ChatPageComponent() {
                   <button
                     key={index}
                     onClick={() => handleSuggestionClick(suggestion)}
-                    className="px-3 py-2 bg-white border border-gray-200 rounded-full text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                    className="px-3 py-2 bg-white border border-gray-200 rounded-full text-sm text-gray-700 hover:bg-gray-50 transition-colors shadow-sm"
                   >
                     {suggestion}
                   </button>
@@ -311,7 +306,7 @@ function ChatPageComponent() {
         </div>
 
         {/* Input */}
-        <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200">
+        <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-lg">
           <div className="max-w-4xl mx-auto px-4 py-4">
             <div className="flex items-end gap-3">
               <div className="flex-1 relative">

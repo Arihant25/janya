@@ -64,7 +64,7 @@ export async function POST(request: NextRequest) {
 
     // Generate AI response with streaming
     const model = genAI.getGenerativeModel({
-      model: 'gemini-1.5-flash',
+      model: 'gemini-2.5-flash',
       systemInstruction: generateSystemPrompt(user, userContext)
     });
 
@@ -170,13 +170,13 @@ async function getUserContext(db: any, userId: ObjectId) {
     currentStreak: userStats?.currentStreak || 0,
     longestStreak: userStats?.longestStreak || 0,
     dominantMoods: userStats?.moodDistribution || {},
-    recentMoodTrend: recentEntries.slice(0, 3).map(e => e.mood) || []
+    recentMoodTrend: recentEntries.slice(0, 3).map((e: any) => e.mood) || []
   };
 }
 
 function generateSystemPrompt(user: any, context: any): string {
   const dominantMoods = Object.entries(context.dominantMoods as Record<string, number>)
-    .sort(([,a], [,b]) => (b as number) - (a as number))
+    .sort(([, a], [, b]) => (b as number) - (a as number))
     .slice(0, 3)
     .map(([mood, count]) => `${mood} (${count} entries)`);
 
@@ -193,9 +193,9 @@ function generateSystemPrompt(user: any, context: any): string {
 
 ## Recent Journal Insights:
 ${context.recentEntries.length > 0 ?
-  context.recentEntries.map((entry: any, i: number) =>
-    `${i + 1}. ${new Date(entry.createdAt).toLocaleDateString()} - ${entry.mood}: "${entry.title}" (${entry.wordCount} words)`
-  ).join('\n') : 'No recent journal entries'}
+      context.recentEntries.map((entry: any, i: number) =>
+        `${i + 1}. ${new Date(entry.createdAt).toLocaleDateString()} - ${entry.mood}: "${entry.title}" (${entry.wordCount} words)`
+      ).join('\n') : 'No recent journal entries'}
 
 ## Your Role & Personality:
 - Be warm, empathetic, and genuinely caring
