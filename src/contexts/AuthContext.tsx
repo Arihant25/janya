@@ -9,6 +9,7 @@ interface User {
   name: string;
   preferences: any;
   musicPlatform?: string;
+  avatar?: string;
 }
 
 interface AuthContextType {

@@ -127,7 +127,7 @@ function JournalsPageComponent() {
             mood: journal.mood || 'thoughtful',
             preview: journal.content?.substring(0, 120) + '...' || 'No preview available',
             wordCount: journal.content?.split(' ').length || 0,
-            abstractArt: MOOD_GRADIENTS[journal.mood] || MOOD_GRADIENTS.thoughtful,
+            abstractArt: MOOD_GRADIENTS[journal.mood as MoodType] || MOOD_GRADIENTS.thoughtful,
             theme: journal.mood || 'thoughtful',
             content: journal.content,
             photo: journal.photo,

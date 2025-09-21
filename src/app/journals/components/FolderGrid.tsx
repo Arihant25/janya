@@ -10,6 +10,7 @@ interface JournalFolder {
     journalCount: number;
     lastUpdated: string;
     preview?: string;
+    journals: any[];
 }
 
 interface FolderGridProps {
