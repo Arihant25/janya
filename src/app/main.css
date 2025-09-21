@@ -213,12 +213,6 @@ h6 {
   margin-bottom: var(--space-sm);
 }
 
-p {
-  margin: 0 0 var(--space-md) 0;
-  color: var(--janya-text-secondary);
-  line-height: var(--line-height-relaxed);
-}
-
 a {
   color: var(--janya-primary);
   text-decoration: none;
@@ -227,7 +221,6 @@ a {
 
 a:hover {
   color: var(--janya-accent);
-  text-decoration: underline;
 }
 
 /* Layout Components - Enhanced containers and spacing */

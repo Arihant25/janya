@@ -65,7 +65,7 @@ export default function Navigation() {
       label: 'Discover',
       icon: <Compass size={24} />,
       description: 'Find new content'
-    },
+    }
   ];
 
   const getInitials = (name: string) => {
@@ -82,8 +82,9 @@ export default function Navigation() {
             {/* Logo with subtle animation */}
             <Link
               href="/journal"
-              className="text-xl font-bold"
+              className="text-2xl"
               style={{
+                fontWeight: 900,
                 color: 'var(--janya-primary)',
               }}
             >
@@ -95,13 +96,13 @@ export default function Navigation() {
               <button
                 ref={buttonRef}
                 onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                className="flex items-center gap-3 px-3 py-2 rounded-full border border-gray-200 bg-white/80 backdrop-blur-sm hover:bg-white hover:border-gray-300 transition-all duration-200 shadow-sm hover:shadow-md"
+                className="flex items-center gap-1 px-2 py-1 rounded-full border border-gray-200 bgtransparent hover:bg-gray-50 transition-all duration-200 shadow-sm hover:shadow-md cursor-pointer"
                 aria-expanded={isDropdownOpen}
                 aria-haspopup="true"
               >
                 {/* User Avatar */}
-                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white text-xs font-semibold shadow-sm">
-                  {getInitials(user.name)}
+                <div className="w-8 h-8 rounded-full" style={{ background: 'linear-gradient(135deg, var(--md-sys-color-secondary), var(--md-sys-color-primary))' }}>
+                  <span className="flex items-center justify-center w-full h-full text-white text-xs font-semibold shadow-sm">{getInitials(user.name)}</span>
                 </div>
 
                 <span className="text-sm font-medium text-gray-700 hidden sm:block">
@@ -110,7 +111,7 @@ export default function Navigation() {
 
                 <ChevronDown
                   size={16}
-                  className={`text-gray-500 transition-transform duration-200 ${isDropdownOpen ? 'rotate-180' : ''}`}
+                  className={`text-gray-500 transition-transform duration-100 ${isDropdownOpen ? 'rotate-180' : ''}`}
                 />
               </button>
 
@@ -123,8 +124,8 @@ export default function Navigation() {
                   {/* User Info Section */}
                   <div className="px-4 py-3 border-b border-gray-100 bg-gray-50">
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white text-sm font-semibold">
-                        {getInitials(user.name)}
+                      <div className="w-10 h-10 rounded-full bg-gradient-to-br" style={{ background: 'linear-gradient(135deg, var(--md-sys-color-secondary), var(--md-sys-color-primary))' }}>
+                        <span className="flex items-center justify-center w-full h-full text-white text-sm font-semibold">{getInitials(user.name)}</span>
                       </div>
                       <div>
                         <p className="text-sm font-semibold text-gray-900">{user.name || 'User'}</p>
@@ -159,9 +160,6 @@ export default function Navigation() {
         </div>
       </header>
 
-      {/* Content Spacing */}
-      <div className="h-16"></div>
-
       {/* Enhanced Bottom Navigation */}
       <nav className="fixed bottom-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-t border-gray-100 shadow-lg">
         <div className="px-2 py-1 max-w-screen-xl mx-auto">
@@ -173,41 +171,29 @@ export default function Navigation() {
                 <Link
                   key={item.href}
                   href={item.href}
-                  className="group relative flex flex-col items-center justify-center p-2 flex-1 rounded-xl transition-all duration-200 hover:bg-gray-50"
+                  className="group relative flex flex-col items-center justify-center p-1 flex-1 rounded-xl transition-all duration-200 hover:bg-gray-50"
                   title={item.description}
                 >
-                  {/* Active indicator */}
-                  {isActive && (
-                    <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-8 h-1 bg-gradient-to-r from-purple-500 to-indigo-500 rounded-full"></div>
-                  )}
-
                   {/* Icon container with enhanced styling */}
                   <div className={`relative flex items-center justify-center w-12 h-12 rounded-2xl mb-1 transition-all duration-200 ${isActive
-                    ? 'bg-gradient-to-br from-purple-500 to-indigo-500 shadow-lg shadow-purple-500/25 scale-105'
+                    ? 'bg-gradient-to-br shadow-lg scale-105'
                     : 'bg-transparent group-hover:bg-gray-100 group-hover:scale-105'
-                    }`}>
-                    <div className={`transition-all duration-200 ${isActive ? 'text-white' : 'text-gray-600 group-hover:text-gray-800'
-                      }`}>
+                    }`} style={isActive ? { background: 'linear-gradient(135deg, var(--md-sys-color-secondary), var(--md-sys-color-primary))', boxShadow: '0 4px 24px 0 var(--md-sys-color-secondary, #8882)', } : {}}>
+                    <div className={`transition-all duration-200 ${isActive ? 'text-white' : 'text-gray-600 group-hover:text-gray-800'}`}>
                       {item.icon}
                     </div>
-
-                    {/* Subtle glow effect for active state */}
-                    {isActive && (
-                      <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-purple-500 to-indigo-500 opacity-20 blur-md"></div>
-                    )}
                   </div>
-
-                  {/* Label with enhanced typography */}
+                  
                   <span className={`text-xs font-medium transition-all duration-200 ${isActive
-                    ? 'text-purple-600 font-semibold'
+                    ? 'font-semibold'
                     : 'text-gray-600 group-hover:text-gray-800'
-                    }`}>
+                    }`} style={isActive ? { color: 'var(--md-sys-color-secondary)' } : {}}>
                     {item.label}
                   </span>
 
                   {/* Ripple effect on tap */}
-                  <div className="absolute inset-0 rounded-xl overflow-hidden">
-                    <div className="absolute inset-0 bg-gradient-to-r from-purple-500 to-indigo-500 opacity-0 group-active:opacity-10 transition-opacity duration-150 rounded-xl"></div>
+                  <div className="absolute inset-0 rounded-xl overflow-hidden p-1">
+                    <div className="absolute inset-0 bg-gradient-to-r opacity-0 group-active:opacity-10 transition-opacity duration-150 rounded-xl" style={{ background: 'linear-gradient(90deg, var(--md-sys-color-secondary), var(--md-sys-color-primary))' }}></div>
                   </div>
                 </Link>
               );

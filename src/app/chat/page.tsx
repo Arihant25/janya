@@ -30,8 +30,8 @@ function ChatPageComponent() {
     "How can I improve my mood today?",
     "Help me reflect on my recent journal entries",
     "What patterns do you notice in my emotional journey?",
-    "Give me a journal prompt for today",
-    "How can I maintain my journaling streak?"
+    "Can you suggest some mindfulness exercises?",
+    "What are some techniques to manage stress?"
   ];
 
   useEffect(() => {
@@ -63,7 +63,7 @@ function ChatPageComponent() {
         const welcomeMessage: Message = {
           id: 'welcome',
           role: 'assistant',
-          content: `Hello ${user?.name}! I'm Janya, your personal wellness companion. I'm here to support you on your journaling journey and help you reflect on your thoughts and emotions. How are you feeling today?`,
+          content: `Hello ${user?.name}! I'm Janya, your personal wellness companion. I'm here to support you on your journey and help you reflect on your thoughts and emotions. How are you feeling today?`,
           timestamp: new Date()
         };
         setMessages([welcomeMessage]);
@@ -74,7 +74,7 @@ function ChatPageComponent() {
       const welcomeMessage: Message = {
         id: 'welcome',
         role: 'assistant',
-        content: `Hello ${user?.name}! I'm Janya, your personal wellness companion. I'm here to support you on your journaling journey. How are you feeling today?`,
+        content: `Hello ${user?.name}! I'm Janya, your personal wellness companion. I'm here to support you on your journey. How are you feeling today?`,
         timestamp: new Date()
       };
       setMessages([welcomeMessage]);
@@ -160,9 +160,14 @@ function ChatPageComponent() {
   const adjustTextareaHeight = () => {
     if (textareaRef.current) {
       textareaRef.current.style.height = 'auto';
-      textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, 120)}px`;
+      textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, 75)}px`;
     }
   };
+
+  // Ensure textarea resizes on inputMessage change
+  useEffect(() => {
+    adjustTextareaHeight();
+  }, [inputMessage]);
 
   const formatTime = (date: Date) => {
     return new Intl.DateTimeFormat('en-US', {
@@ -174,14 +179,14 @@ function ChatPageComponent() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen" style={{ background: 'var(--md-sys-color-background)' }}>
         <Navigation />
         <div className="flex items-center justify-center h-[calc(100vh-80px)]">
           <div className="text-center">
-            <div className="w-12 h-12 mx-auto mb-4 rounded-full animate-spin bg-gradient-to-r from-purple-500 to-pink-500">
+            <div className="w-12 h-12 mx-auto mb-4 rounded-full animate-spin" style={{ background: 'linear-gradient(90deg, var(--md-sys-color-secondary), var(--md-sys-color-primary))' }}>
               <div className="w-full h-full rounded-full border-4 border-transparent border-t-white" />
             </div>
-            <p className="text-gray-600">Loading your conversation...</p>
+            <p style={{ color: 'var(--janya-text-secondary)' }}>Loading your conversation...</p>
           </div>
         </div>
       </div>
@@ -189,41 +194,44 @@ function ChatPageComponent() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen" style={{ background: 'var(--md-sys-color-background)' }}>
       <Navigation />
 
       <div className="max-w-4xl mx-auto">
         {/* Chat Header */}
-        <div className="sticky top-0 bg-white border-b border-gray-200 z-10 shadow-sm">
+        {/* <div className="sticky top-0 z-10 shadow-sm" style={{ background: 'var(--md-sys-color-surface)', borderBottom: '1px solid var(--md-sys-color-outline-variant)' }}>
           <div className="px-6 py-4">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center">
+              <div className="w-10 h-10 rounded-full flex items-center justify-center" style={{ background: 'linear-gradient(90deg, var(--md-sys-color-secondary), var(--md-sys-color-primary))' }}>
                 <Bot size={20} className="text-white" />
               </div>
               <div className="flex-grow">
-                <h1 className="font-semibold text-gray-900">Janya</h1>
-                <p className="text-sm text-gray-500">Your wellness companion</p>
+                <p className="font-semibold text-2xl mb-0" style={{ color: 'var(--janya-text-primary)' }}>Janya</p>
+                <p className="text-sm" style={{ color: 'var(--janya-text-secondary)' }}>Your wellness companion</p>
               </div>
               <button
                 onClick={loadChatHistory}
-                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                className="p-2 rounded-lg transition-colors"
+                style={{ background: 'transparent' }}
                 title="Refresh chat"
               >
-                <RefreshCw size={18} className="text-gray-600" />
+                <RefreshCw size={18} style={{ color: 'var(--janya-text-secondary)' }} />
               </button>
             </div>
           </div>
-        </div>
+        </div> */}
 
         {/* Messages */}
-        <div className="px-4 py-6 space-y-6 pb-32">
+        <div className="px-4 py-4 space-y-6 pb-40">
           {messages.map((message) => (
             <div key={message.id} className={`flex gap-3 ${message.role === 'user' ? 'flex-row-reverse' : ''} animate-in fade-in-0 slide-in-from-bottom-2 duration-300`}>
               {/* Avatar */}
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${message.role === 'user'
-                ? 'bg-blue-500'
-                : 'bg-gradient-to-r from-purple-500 to-pink-500'
-                }`}>
+              <div
+                className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0`}
+                style={message.role === 'user'
+                  ? { background: 'var(--md-sys-color-primary)' }
+                  : { background: 'linear-gradient(90deg, var(--md-sys-color-secondary), var(--md-sys-color-primary))' }}
+              >
                 {message.role === 'user' ? (
                   <User size={16} className="text-white" />
                 ) : (
@@ -232,12 +240,13 @@ function ChatPageComponent() {
               </div>
 
               {/* Message */}
-              <div className={`flex-1 max-w-xs sm:max-w-sm md:max-w-md lg:max-w-lg ${message.role === 'user' ? 'text-right' : ''
-                }`}>
-                <div className={`p-3 rounded-2xl ${message.role === 'user'
-                  ? 'bg-blue-500 text-white'
-                  : 'bg-white border border-gray-200 text-gray-800 shadow-sm'
-                  }`}>
+              <div className={`flex-1 max-w-xs sm:max-w-sm md:max-w-md lg:max-w-lg ${message.role === 'user' ? 'text-right' : ''}`}>
+                <div
+                  className={`p-3 rounded-2xl`}
+                  style={message.role === 'user'
+                    ? { background: 'var(--md-sys-color-primary)', color: 'var(--md-sys-color-on-primary)', width: 'fit-content', marginLeft: 'auto' }
+                    : { background: 'var(--md-sys-color-surface)', color: 'var(--janya-text-primary)', border: '1px solid var(--md-sys-color-outline-variant)', boxShadow: 'var(--shadow-sm)' }}
+                >
                   <p className="whitespace-pre-wrap leading-relaxed">
                     {message.streaming && message.content === 'thinking...' ? (
                       <span className="flex items-center gap-1">
@@ -258,24 +267,30 @@ function ChatPageComponent() {
                     )}
                   </p>
                 </div>
-                <p className={`text-xs text-gray-500 mt-1 ${message.role === 'user' ? 'text-right' : ''
-                  }`}>
+                <p className={`text-xs mt-1 ${message.role === 'user' ? 'text-right' : ''}`}
+                  style={{ color: 'var(--janya-text-secondary)' }}>
                   {formatTime(message.timestamp)}
                 </p>
               </div>
             </div>
           ))}
 
+          <div ref={messagesEndRef} />
+        </div>
+
+        {/* Input */}
+        <div className="fixed bottom-20 left-0 right-0 z-50">
           {/* Suggestions */}
           {messages.length <= 1 && !isSending && (
-            <div className="space-y-3">
-              <p className="text-sm text-gray-600 text-center">Try asking me:</p>
+            <div className="space-y-3 mb-5">
+              <p className="text-md text-center" style={{ color: 'var(--janya-text-secondary)' }}>Try asking me:</p>
               <div className="flex flex-wrap gap-2 justify-center">
                 {suggestionPrompts.map((suggestion, index) => (
                   <button
                     key={index}
                     onClick={() => handleSuggestionClick(suggestion)}
-                    className="px-3 py-2 bg-white border border-gray-200 rounded-full text-sm text-gray-700 hover:bg-gray-50 transition-colors shadow-sm"
+                    className="px-3 py-2 rounded-full text-sm transition-colors shadow-sm"
+                    style={{ background: 'var(--md-sys-color-surface)', border: '1px solid var(--md-sys-color-outline-variant)', color: 'var(--janya-text-primary)' }}
                   >
                     {suggestion}
                   </button>
@@ -283,14 +298,9 @@ function ChatPageComponent() {
               </div>
             </div>
           )}
-
-          <div ref={messagesEndRef} />
-        </div>
-
-        {/* Input */}
-        <div className="fixed bottom-25 sm:bottom-26 left-0 right-0 bg-white border-t border-gray-200 shadow-lg z-50">
-          <div className="max-w-4xl mx-auto px-4 py-4">
-            <div className="flex items-end gap-3">
+          <div className="max-w-4xl mx-auto px-4 py-2"
+            style={{ background: 'var(--md-sys-color-surface)', borderTop: '1px solid var(--md-sys-color-outline-variant)' }}>
+            <div className="flex items-end gap-3 flex">
               <div className="flex-1 relative">
                 <textarea
                   ref={textareaRef}
@@ -301,28 +311,31 @@ function ChatPageComponent() {
                   }}
                   onKeyPress={handleKeyPress}
                   placeholder="Tell me what's on your mind..."
-                  className="w-full px-4 py-3 pr-12 border border-gray-300 rounded-2xl resize-none focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  className="w-full px-4 py-3 pr-12 rounded-2xl resize-none focus:outline-none"
                   rows={1}
                   disabled={isSending}
-                  style={{ minHeight: '48px', maxHeight: '120px' }}
+                  style={{ minHeight: '48px', maxHeight: '120px', border: '1px solid var(--md-sys-color-outline-variant)', background: 'var(--md-sys-color-surface)', color: 'var(--janya-text-primary)', boxShadow: 'none', overflow: 'hidden' }}
                 />
               </div>
 
-              <button
-                onClick={handleSendMessage}
-                disabled={!inputMessage.trim() || isSending}
-                className="p-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-2xl disabled:opacity-50 disabled:cursor-not-allowed hover:shadow-lg transition-all duration-200 flex-shrink-0"
-              >
-                {isSending ? (
-                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                ) : (
-                  <Send size={20} />
-                )}
-              </button>
+              <div className="flex justify-between items-center">
+                <button
+                  onClick={handleSendMessage}
+                  disabled={!inputMessage.trim() || isSending}
+                  className="p-3 my-2 rounded-2xl disabled:opacity-50 disabled:cursor-not-allowed hover:shadow-lg transition-all duration-200 flex-shrink-0"
+                  style={{ minHeight: '48px', maxHeight: '120px', background: 'linear-gradient(90deg, var(--md-sys-color-secondary), var(--md-sys-color-primary))', color: 'white', border: 'none' }}
+                >
+                  {isSending ? (
+                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  ) : (
+                    <Send size={20} />
+                  )}
+                </button>
+              </div>
             </div>
 
             {isSending && (
-              <p className="text-xs text-gray-500 mt-2 text-center">
+              <p className="text-xs mt-2 text-center" style={{ color: 'var(--janya-text-secondary)' }}>
                 Janya is thinking...
               </p>
             )}
