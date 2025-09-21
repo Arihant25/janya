@@ -153,12 +153,10 @@ async function analyzeAndUpdateUserData(db: any, userId: ObjectId, userMessage: 
     // Check if we should infer mood from the conversation
     const shouldUpdateMood = await shouldInferMoodFromChat(userMessage, aiResponse);
 
-    if (shouldUpdateMood.shouldUpdate) {
-      // Update mood distribution if a mood was inferred
+    if (shouldUpdateMood.shouldUpdate && shouldUpdateMood.inferredMood) {
+      // Update mood distribution if a mood was inferred        
       const moodDistribution = { ...userStats?.moodDistribution || {} };
-      moodDistribution[shouldUpdateMood.inferredMood] = (moodDistribution[shouldUpdateMood.inferredMood] || 0) + 1;
-
-      await db.collection('userStats').updateOne(
+      moodDistribution[shouldUpdateMood.inferredMood] = (moodDistribution[shouldUpdateMood.inferredMood] || 0) + 1; await db.collection('userStats').updateOne(
         { userId },
         {
           $set: {
@@ -188,7 +186,7 @@ async function analyzeAndUpdateUserData(db: any, userId: ObjectId, userMessage: 
 }
 
 
-async function shouldInferMoodFromChat(userMessage: string, aiResponse: string): Promise<{shouldUpdate: boolean, inferredMood?: string}> {
+async function shouldInferMoodFromChat(userMessage: string, aiResponse: string): Promise<{ shouldUpdate: boolean, inferredMood?: string }> {
   try {
     const prompt = `
     Analyze this conversation and determine if the user expressed a clear emotional state that should be tracked.

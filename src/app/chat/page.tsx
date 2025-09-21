@@ -236,7 +236,7 @@ function ChatPageComponent() {
                 }`}>
                 <div className={`p-3 rounded-2xl ${message.role === 'user'
                   ? 'bg-blue-500 text-white'
-                  : 'bg-white border border-gray-200 text-gray-800 shadow-sm'
+                  : 'bg-black text-white'
                   }`}>
                   <p className="whitespace-pre-wrap leading-relaxed">
                     {message.streaming && message.content === 'thinking...' ? (
@@ -304,7 +304,7 @@ function ChatPageComponent() {
                   className="w-full px-4 py-3 pr-12 border border-gray-300 rounded-2xl resize-none focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                   rows={1}
                   disabled={isSending}
-                  style={{ minHeight: '48px', maxHeight: '120px' }}
+                  style={{ minHeight: '60px', maxHeight: '150px' }}
                 />
               </div>
 

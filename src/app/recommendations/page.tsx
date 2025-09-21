@@ -1,8 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Book, Music, Activity, Heart, ArrowLeft, RefreshCw, Loader2, Volume2, BookOpen, Search, Sparkles, Star, Plus, TrendingUp } from 'lucide-react';
-import { Card, Button, IconButton, TextField, LinearProgress, Chip, ChipSet, FAB, List, ListItem, Divider } from '@/app/components/MaterialComponents';
+import { Book, Music, Activity, Heart, ArrowLeft, RefreshCw, Loader2, Volume2, BookOpen, Search, Star, Plus, TrendingUp } from 'lucide-react';
+import { Card, Button, IconButton, TextField, LinearProgress, Chip } from '@/app/components/MaterialComponents';
 import withAuth from '@/components/withAuth';
 import Navigation from '@/app/components/Navigation';
 import { useAuth } from '@/contexts/AuthContext';
@@ -212,7 +212,7 @@ function RecommendationsPageComponent() {
   const [expandedCard, setExpandedCard] = useState<string | null>(null);
   const [savedItems, setSavedItems] = useState<string[]>([]);
   const [isGenerating, setIsGenerating] = useState(false);
-  const [showQuickActions, setShowQuickActions] = useState(false);
+  // removed FAB quick actions state (no floating action button)
 
   // Initialize and analyze mood
   useEffect(() => {
@@ -352,15 +352,15 @@ function RecommendationsPageComponent() {
     <div className="min-h-screen" style={{ backgroundColor: 'var(--md-sys-color-surface)' }}>
       <Navigation />
 
-      <div className="max-w-4xl mx-auto">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
-        <Card variant="filled" className="m-4 p-6">
-          <div className="flex items-center justify-between mb-4">
+        <Card variant="filled" className="m-4 p-4 sm:p-6">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4 items-center text-center sm:text-left">
             <div>
-              <h1 className="text-2xl font-bold" style={{ color: 'var(--md-sys-color-on-surface)' }}>
+              <h1 className="text-3xl sm:text-4xl font-bold" style={{ color: 'var(--md-sys-color-on-surface)' }}>
                 Discover
               </h1>
-              <p className="text-sm" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>
+              <p className="text-sm sm:text-base mt-1" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>
                 Personalized recommendations based on your journal insights
               </p>
             </div>
@@ -369,6 +369,7 @@ function RecommendationsPageComponent() {
               variant="filled-tonal"
               onClick={refreshRecommendations}
               disabled={isRefreshing}
+              className="mt-2 sm:mt-0"
             >
               <RefreshCw size={20} className={isRefreshing ? "animate-spin" : ""} />
             </IconButton>
@@ -383,7 +384,7 @@ function RecommendationsPageComponent() {
           )}
 
           {/* Stats Overview */}
-          <div className="flex gap-4 mt-4">
+          <div className="flex flex-wrap gap-3 sm:gap-4 mt-4">
             <div className="flex items-center gap-2">
               <TrendingUp size={16} style={{ color: 'var(--md-sys-color-primary)' }} />
               <span className="text-sm" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>
@@ -400,16 +401,17 @@ function RecommendationsPageComponent() {
         </Card>
 
         {/* Generate New Recommendations */}
-        <Card variant="outlined" className="m-4 p-4">
-          <h3 className="font-semibold mb-3" style={{ color: 'var(--md-sys-color-on-surface)' }}>
+        <Card variant="outlined" className="m-4 p-4 sm:p-6">
+          <h3 className="font-semibold mb-3 sm:mb-4" style={{ color: 'var(--md-sys-color-on-surface)' }}>
             Generate New Recommendations
           </h3>
-          <div className="flex gap-2 flex-wrap">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-3">
             <Button
               variant="filled-tonal"
               onClick={() => handleGenerateRecommendations('book')}
               disabled={isGenerating}
               hasIcon
+              className="w-full"
             >
               <BookOpen size={16} />
               Books
@@ -419,6 +421,7 @@ function RecommendationsPageComponent() {
               onClick={() => handleGenerateRecommendations('music')}
               disabled={isGenerating}
               hasIcon
+              className="w-full"
             >
               <Music size={16} />
               Music
@@ -428,13 +431,14 @@ function RecommendationsPageComponent() {
               onClick={() => handleGenerateRecommendations('activity')}
               disabled={isGenerating}
               hasIcon
+              className="w-full"
             >
               <Activity size={16} />
               Activities
             </Button>
           </div>
           {isGenerating && (
-            <div className="mt-3 flex items-center gap-2">
+            <div className="mt-3 sm:mt-4 flex items-center gap-2">
               <Loader2 size={16} className="animate-spin" style={{ color: 'var(--md-sys-color-primary)' }} />
               <span className="text-sm" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>
                 Generating personalized recommendations...
@@ -444,9 +448,9 @@ function RecommendationsPageComponent() {
         </Card>
 
         {/* Search and Filters */}
-        <Card variant="outlined" className="m-4 p-4">
+        <Card variant="outlined" className="m-4 p-4 sm:p-6">
           {/* Search Bar */}
-          <div className="mb-4">
+          <div className="mb-4 sm:mb-6">
             <TextField
               variant="outlined"
               label="Search recommendations"
@@ -462,38 +466,42 @@ function RecommendationsPageComponent() {
           </div>
 
           {/* Filter Chips */}
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-2 sm:gap-3">
             <Chip
               variant="filter"
               label={`All (${counts.all})`}
               selected={activeFilter === 'all'}
               onClick={() => setActiveFilter('all')}
+              className="min-w-0"
             />
             <Chip
               variant="filter"
               label={`Books (${counts.book})`}
               selected={activeFilter === 'book'}
               onClick={() => setActiveFilter('book')}
+              className="min-w-0"
             />
             <Chip
               variant="filter"
               label={`Music (${counts.music})`}
               selected={activeFilter === 'music'}
               onClick={() => setActiveFilter('music')}
+              className="min-w-0"
             />
             <Chip
               variant="filter"
               label={`Activities (${counts.activity})`}
               selected={activeFilter === 'activity'}
               onClick={() => setActiveFilter('activity')}
+              className="min-w-0"
             />
           </div>
         </Card>
 
         {/* Content */}
-        <div className="m-4 mb-32">
+        <div className="m-4 mb-20 sm:mb-32">
           {filteredRecommendations.length > 0 ? (
-            <div className="space-y-4">
+            <div className="space-y-3 sm:space-y-4">
               {filteredRecommendations.map((recommendation) => (
                 <RecommendationCard
                   key={recommendation.id}
@@ -506,30 +514,31 @@ function RecommendationsPageComponent() {
               ))}
             </div>
           ) : journalEntries.length === 0 ? (
-            <Card variant="outlined" className="p-8 text-center">
-              <div className="w-20 h-20 mx-auto mb-6 rounded-full flex items-center justify-center" style={{ backgroundColor: 'var(--md-sys-color-surface-container)' }}>
-                <Book size={32} style={{ color: 'var(--md-sys-color-on-surface-variant)' }} />
+            <Card variant="outlined" className="p-6 sm:p-8 text-center">
+              <div className="w-16 h-16 sm:w-20 sm:h-20 mx-auto mb-4 sm:mb-6 rounded-full flex items-center justify-center" style={{ backgroundColor: 'var(--md-sys-color-surface-container)' }}>
+                <Book size={28} style={{ color: 'var(--md-sys-color-on-surface-variant)' }} />
               </div>
-              <h3 className="text-xl font-bold mb-2" style={{ color: 'var(--md-sys-color-on-surface)' }}>Start your journaling journey</h3>
-              <p className="mb-6" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>
+              <h3 className="text-lg sm:text-xl font-bold mb-2" style={{ color: 'var(--md-sys-color-on-surface)' }}>Start your journaling journey</h3>
+              <p className="mb-4 sm:mb-6 text-sm sm:text-base" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>
                 Write in your journal to get personalized recommendations based on your mood and interests
               </p>
               <Button
                 variant="filled"
                 onClick={() => window.location.href = '/journal'}
                 hasIcon
+                className="w-full sm:w-auto"
               >
                 <Plus size={16} />
                 Create First Entry
               </Button>
             </Card>
           ) : (
-            <Card variant="outlined" className="p-8 text-center">
-              <div className="w-16 h-16 mb-4 mx-auto rounded-full flex items-center justify-center" style={{ backgroundColor: 'var(--md-sys-color-surface-container)' }}>
-                <Search size={24} style={{ color: 'var(--md-sys-color-on-surface-variant)' }} />
+            <Card variant="outlined" className="p-6 sm:p-8 text-center">
+              <div className="w-12 h-12 sm:w-16 sm:h-16 mb-3 sm:mb-4 mx-auto rounded-full flex items-center justify-center" style={{ backgroundColor: 'var(--md-sys-color-surface-container)' }}>
+                <Search size={20} style={{ color: 'var(--md-sys-color-on-surface-variant)' }} />
               </div>
-              <h3 className="font-semibold mb-2" style={{ color: 'var(--md-sys-color-on-surface)' }}>No matches found</h3>
-              <p className="text-sm mb-6" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>
+              <h3 className="text-base sm:text-lg font-semibold mb-2" style={{ color: 'var(--md-sys-color-on-surface)' }}>No matches found</h3>
+              <p className="text-sm mb-4 sm:mb-6" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>
                 Try adjusting your search or generate new recommendations above
               </p>
               <Button
@@ -538,6 +547,7 @@ function RecommendationsPageComponent() {
                   setSearchQuery('');
                   setActiveFilter('all');
                 }}
+                className="w-full sm:w-auto"
               >
                 Clear Filters
               </Button>
@@ -545,62 +555,7 @@ function RecommendationsPageComponent() {
           )}
         </div>
 
-        {/* Floating Action Button for Quick Actions */}
-        <div className="fixed bottom-24 right-6 z-40">
-          {showQuickActions && (
-            <div className="mb-4 space-y-2">
-              <FAB
-                variant="secondary"
-                size="small"
-                onClick={() => {
-                  handleGenerateRecommendations('book');
-                  setShowQuickActions(false);
-                }}
-                disabled={isGenerating}
-                extended
-                label="Books"
-              >
-                <BookOpen size={16} />
-              </FAB>
-              <FAB
-                variant="secondary"
-                size="small"
-                onClick={() => {
-                  handleGenerateRecommendations('music');
-                  setShowQuickActions(false);
-                }}
-                disabled={isGenerating}
-                extended
-                label="Music"
-              >
-                <Music size={16} />
-              </FAB>
-              <FAB
-                variant="secondary"
-                size="small"
-                onClick={() => {
-                  handleGenerateRecommendations('activity');
-                  setShowQuickActions(false);
-                }}
-                disabled={isGenerating}
-                extended
-                label="Activities"
-              >
-                <Activity size={16} />
-              </FAB>
-            </div>
-          )}
-          <FAB
-            variant="primary"
-            size="large"
-            onClick={() => setShowQuickActions(!showQuickActions)}
-            extended
-            label={showQuickActions ? "Close" : "Generate"}
-            disabled={isGenerating}
-          >
-            {isGenerating ? <Loader2 size={24} className="animate-spin" /> : <Sparkles size={24} />}
-          </FAB>
-        </div>
+        {/* FAB removed for a cleaner, responsive layout */}
       </div>
     </div>
   );
