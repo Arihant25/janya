@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { Journal, MOOD_EMOJIS, MOOD_GRADIENTS, MoodType } from '@/types/theme';
+import { Card, Button, IconButton, TextField, LinearProgress, Chip, FAB } from '@/app/components/MaterialComponents';
 import withAuth from '@/components/withAuth';
 import Navigation from '@/app/components/Navigation';
 import { useAuth } from '@/contexts/AuthContext';
@@ -30,21 +31,21 @@ interface JournalFolder {
 
 const createFoldersFromJournals = (journals: Journal[]): JournalFolder[] => {
   const moodConfig: Record<string, { name: string; color: string; gradient: string }> = {
-    happy: { name: 'Joyful Moments', color: '#f59e0b', gradient: 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%)' },
-    sad: { name: 'Reflective Times', color: '#3b82f6', gradient: 'linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%)' },
-    excited: { name: 'High Energy', color: '#ef4444', gradient: 'linear-gradient(135deg, #f87171 0%, #ef4444 100%)' },
-    calm: { name: 'Peaceful Mind', color: '#10b981', gradient: 'linear-gradient(135deg, #34d399 0%, #10b981 100%)' },
-    anxious: { name: 'Working Through', color: '#8b5cf6', gradient: 'linear-gradient(135deg, #a78bfa 0%, #8b5cf6 100%)' },
-    angry: { name: 'Intense Feelings', color: '#f97316', gradient: 'linear-gradient(135deg, #fb923c 0%, #f97316 100%)' },
-    thoughtful: { name: 'Deep Thoughts', color: '#6366f1', gradient: 'linear-gradient(135deg, #818cf8 0%, #6366f1 100%)' },
-    inspired: { name: 'Creative Flow', color: '#ec4899', gradient: 'linear-gradient(135deg, #f472b6 0%, #ec4899 100%)' }
+    happy: { name: 'Joyful Moments', color: 'var(--janya-secondary)', gradient: 'var(--md-sys-color-secondary-container)' },
+    sad: { name: 'Reflective Times', color: 'var(--janya-primary)', gradient: 'var(--md-sys-color-primary-container)' },
+    excited: { name: 'High Energy', color: 'var(--md-sys-color-error)', gradient: 'var(--md-sys-color-error-container)' },
+    calm: { name: 'Peaceful Mind', color: 'var(--janya-accent)', gradient: 'var(--md-sys-color-tertiary-container)' },
+    anxious: { name: 'Working Through', color: 'var(--md-sys-color-tertiary)', gradient: 'var(--md-sys-color-tertiary-container)' },
+    angry: { name: 'Intense Feelings', color: 'var(--md-sys-color-error)', gradient: 'var(--md-sys-color-error-container)' },
+    thoughtful: { name: 'Deep Thoughts', color: 'var(--janya-primary)', gradient: 'var(--md-sys-color-primary-container)' },
+    inspired: { name: 'Creative Flow', color: 'var(--janya-secondary)', gradient: 'var(--md-sys-color-secondary-container)' }
   };
 
   const folders: { [key: string]: JournalFolder } = {};
 
   journals.forEach(journal => {
     const folderKey = journal.mood;
-    const config = moodConfig[folderKey] || { name: 'Other', color: '#6b7280', gradient: 'linear-gradient(135deg, #9ca3af 0%, #6b7280 100%)' };
+    const config = moodConfig[folderKey] || { name: 'Other', color: 'var(--md-sys-color-outline)', gradient: 'var(--md-sys-color-surface-variant)' };
 
     if (!folders[folderKey]) {
       folders[folderKey] = {
@@ -190,13 +191,10 @@ function JournalsPageComponent() {
     return (
       <div>
         <Navigation />
-        <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: 'var(--md-sys-color-background)' }}>
           <div className="text-center">
-            <div className="w-12 h-12 mx-auto mb-4 rounded-full animate-spin"
-              style={{ background: 'var(--janya-warm-gradient)' }}>
-              <div className="w-full h-full rounded-full border-4 border-transparent border-t-white" />
-            </div>
-            <p className="text-gray-600">Loading your journals...</p>
+            <LinearProgress className="w-32 mx-auto mb-4" />
+            <p style={{ color: 'var(--janya-text-secondary)' }}>Loading your journals...</p>
           </div>
         </div>
       </div>
@@ -204,7 +202,7 @@ function JournalsPageComponent() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen" style={{ backgroundColor: 'var(--md-sys-color-background)' }}>
       <Navigation />
 
       <JournalHeader
@@ -250,7 +248,13 @@ function JournalsPageComponent() {
         />
       )}
 
-      <CreateButton onClick={handleNewJournal} />
+      <FAB
+        onClick={handleNewJournal}
+        className="fixed bottom-6 right-6"
+        style={{ backgroundColor: 'var(--janya-primary)' }}
+      >
+        <span style={{ color: 'white', fontSize: '24px' }}>+</span>
+      </FAB>
     </div>
   );
 }

@@ -160,7 +160,7 @@ export default function Navigation() {
         </div>
       </header>
 
-      {/* Enhanced Bottom Navigation */}
+      {/* Bottom Navigation */}
       <nav className="fixed bottom-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-t border-gray-100 shadow-lg">
         <div className="px-2 py-1 max-w-screen-xl mx-auto">
           <div className="flex justify-between items-center">
@@ -178,7 +178,7 @@ export default function Navigation() {
                   <div className={`relative flex items-center justify-center w-12 h-12 rounded-2xl mb-1 transition-all duration-200 ${isActive
                     ? 'bg-gradient-to-br shadow-lg scale-105'
                     : 'bg-transparent group-hover:bg-gray-100 group-hover:scale-105'
-                    }`} style={isActive ? { background: 'linear-gradient(135deg, var(--md-sys-color-secondary), var(--md-sys-color-primary))', boxShadow: '0 4px 24px 0 var(--md-sys-color-secondary, #8882)', } : {}}>
+                    }`} style={isActive ? { background: 'linear-gradient(135deg, var(--md-sys-color-secondary), var(--md-sys-color-primary))', boxShadow: '0 2px 16px 0 var(--md-sys-color-secondary, #8882)', } : {}}>
                     <div className={`transition-all duration-200 ${isActive ? 'text-white' : 'text-gray-600 group-hover:text-gray-800'}`}>
                       {item.icon}
                     </div>
@@ -206,7 +206,7 @@ export default function Navigation() {
       </nav>
 
       {/* Bottom spacing for content */}
-      <div className="h-20 sm:h-16"></div>
+      <div className="h-16"></div>
     </>
   );
 }

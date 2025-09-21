@@ -1,39 +1,36 @@
 'use client';
 
 import { BookOpen, Calendar, TrendingUp, Target } from 'lucide-react';
+import { Card } from '@/app/components/MaterialComponents';
 
 interface StatItemProps {
     icon: React.ElementType;
     label: string;
     value: string | number;
-    gradient: string;
+    color: string;
     trend?: string;
 }
 
-const StatItem = ({ icon: Icon, label, value, gradient, trend }: StatItemProps) => (
-    <div className="relative overflow-hidden rounded-2xl p-4 bg-white shadow-sm border border-gray-100">
-        <div
-            className="absolute inset-0 opacity-5"
-            style={{ background: gradient }}
-        />
+const StatItem = ({ icon: Icon, label, value, color, trend }: StatItemProps) => (
+    <Card className="p-4">
         <div className="relative z-10">
             <div className="flex items-center justify-between mb-2">
                 <div
                     className="p-2 rounded-xl"
-                    style={{ background: gradient + '20' }}
+                    style={{ backgroundColor: color + '20' }}
                 >
-                    <Icon size={20} style={{ color: 'var(--janya-primary)' }} />
+                    <Icon size={20} style={{ color: color }} />
                 </div>
                 {trend && (
-                    <span className="text-xs text-green-600 font-medium">
+                    <span className="text-xs font-medium" style={{ color: 'var(--janya-secondary)' }}>
                         {trend}
                     </span>
                 )}
             </div>
-            <h3 className="text-2xl font-bold text-gray-900">{value}</h3>
-            <p className="text-sm text-gray-600">{label}</p>
+            <h3 className="text-2xl font-bold" style={{ color: 'var(--janya-text-primary)' }}>{value}</h3>
+            <p className="text-sm" style={{ color: 'var(--janya-text-secondary)' }}>{label}</p>
         </div>
-    </div>
+    </Card>
 );
 
 interface QuickStatsProps {
@@ -56,27 +53,27 @@ export default function QuickStats({
                     icon={BookOpen}
                     label="Total Entries"
                     value={totalEntries}
-                    gradient="var(--janya-warm-gradient)"
+                    color="var(--janya-primary)"
                     trend={totalEntries > 0 ? "+2 this week" : undefined}
                 />
                 <StatItem
                     icon={Calendar}
                     label="Current Streak"
                     value={`${currentStreak} days`}
-                    gradient="var(--janya-soft-gradient)"
+                    color="var(--janya-secondary)"
                     trend={currentStreak > 3 ? "On fire!" : undefined}
                 />
                 <StatItem
                     icon={TrendingUp}
                     label="Total Words"
                     value={totalWords.toLocaleString()}
-                    gradient="linear-gradient(135deg, #10b981 0%, #059669 100%)"
+                    color="var(--janya-accent)"
                 />
                 <StatItem
                     icon={Target}
                     label="Avg per Entry"
                     value={avgWordsPerEntry}
-                    gradient="linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)"
+                    color="var(--md-sys-color-tertiary)"
                 />
             </div>
         </div>

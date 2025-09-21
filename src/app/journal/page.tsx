@@ -2,7 +2,8 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { Camera, Save, Mic, MicOff, Palette, Calendar, Clock, Heart, Smile, Frown, Meh, Angry, Zap, Coffee, Music, Image as ImageIcon, Type, Sparkles, Sun, Moon, Cloud, CloudRain } from 'lucide-react';
+import { Camera, Save, Mic, MicOff, Heart, Smile, Frown, Meh, Angry, Zap, Coffee, Music, Image as ImageIcon, Type, Sparkles, Sun, Moon, Cloud, CloudRain } from 'lucide-react';
+import { Card, Button, IconButton, TextField, LinearProgress, FAB } from '@/app/components/MaterialComponents';
 import withAuth from '@/components/withAuth';
 import Navigation from '@/app/components/Navigation';
 import { useAuth } from '@/contexts/AuthContext';
@@ -43,56 +44,56 @@ interface Theme {
 }
 
 const moods: Mood[] = [
-  { name: 'happy', icon: Smile, color: '#FFD700', description: 'Joyful & Content' },
-  { name: 'excited', icon: Zap, color: '#FF6347', description: 'Energetic & Thrilled' },
-  { name: 'calm', icon: Heart, color: '#98FB98', description: 'Peaceful & Serene' },
-  { name: 'thoughtful', icon: Coffee, color: '#9370DB', description: 'Reflective & Contemplative' },
-  { name: 'neutral', icon: Meh, color: '#808080', description: 'Balanced & Steady' },
-  { name: 'anxious', icon: Frown, color: '#DDA0DD', description: 'Worried & Tense' },
-  { name: 'sad', icon: CloudRain, color: '#4682B4', description: 'Melancholy & Blue' },
-  { name: 'angry', icon: Angry, color: '#DC143C', description: 'Frustrated & Upset' }
+  { name: 'happy', icon: Smile, color: 'var(--janya-secondary)', description: 'Joyful & Content' },
+  { name: 'excited', icon: Zap, color: 'var(--janya-primary)', description: 'Energetic & Thrilled' },
+  { name: 'calm', icon: Heart, color: 'var(--janya-accent)', description: 'Peaceful & Serene' },
+  { name: 'thoughtful', icon: Coffee, color: 'var(--md-sys-color-tertiary)', description: 'Reflective & Contemplative' },
+  { name: 'neutral', icon: Meh, color: 'var(--md-sys-color-outline)', description: 'Balanced & Steady' },
+  { name: 'anxious', icon: Frown, color: 'var(--md-sys-color-secondary)', description: 'Worried & Tense' },
+  { name: 'sad', icon: CloudRain, color: 'var(--janya-primary)', description: 'Melancholy & Blue' },
+  { name: 'angry', icon: Angry, color: 'var(--md-sys-color-error)', description: 'Frustrated & Upset' }
 ];
 
 const themes: Theme[] = [
   {
-    name: 'Sunrise',
+    name: 'Medical Blue',
     colors: {
-      primary: '#FF6B6B',
-      secondary: '#FFE66D',
-      accent: '#FF8E53',
-      background: 'linear-gradient(135deg, #FFE66D 0%, #FF6B6B 100%)'
+      primary: 'var(--janya-primary)',
+      secondary: 'var(--janya-primary-light)',
+      accent: 'var(--janya-accent)',
+      background: 'var(--md-sys-color-primary-container)'
     },
-    pattern: 'radial-gradient(circle at 20% 80%, rgba(255, 255, 255, 0.2) 0%, transparent 50%)'
+    pattern: 'linear-gradient(135deg, var(--janya-primary-light) 0%, var(--md-sys-color-surface) 100%)'
   },
   {
-    name: 'Ocean',
+    name: 'Medical Green',
     colors: {
-      primary: '#4ECDC4',
-      secondary: '#44A08D',
-      accent: '#093637',
-      background: 'linear-gradient(135deg, #4ECDC4 0%, #44A08D 100%)'
+      primary: 'var(--janya-secondary)',
+      secondary: 'var(--md-sys-color-secondary-container)',
+      accent: 'var(--janya-accent)',
+      background: 'var(--md-sys-color-secondary-container)'
     },
-    pattern: 'radial-gradient(circle at 80% 20%, rgba(255, 255, 255, 0.15) 0%, transparent 50%)'
+    pattern: 'linear-gradient(135deg, var(--md-sys-color-secondary-container) 0%, var(--md-sys-color-surface) 100%)'
   },
   {
-    name: 'Lavender',
+    name: 'Clean Accent',
     colors: {
-      primary: '#A8E6CF',
-      secondary: '#C8A2C8',
-      accent: '#654EA3',
-      background: 'linear-gradient(135deg, #A8E6CF 0%, #C8A2C8 100%)'
+      primary: 'var(--janya-accent)',
+      secondary: 'var(--janya-accent-light)',
+      accent: 'var(--md-sys-color-tertiary)',
+      background: 'var(--md-sys-color-tertiary-container)'
     },
-    pattern: 'radial-gradient(circle at 60% 60%, rgba(255, 255, 255, 0.1) 0%, transparent 40%)'
+    pattern: 'linear-gradient(135deg, var(--janya-accent-light) 0%, var(--md-sys-color-surface) 100%)'
   },
   {
-    name: 'Midnight',
+    name: 'Neutral Clean',
     colors: {
-      primary: '#667EEA',
-      secondary: '#764BA2',
-      accent: '#F093FB',
-      background: 'linear-gradient(135deg, #667EEA 0%, #764BA2 100%)'
+      primary: 'var(--md-sys-color-outline)',
+      secondary: 'var(--md-sys-color-surface-variant)',
+      accent: 'var(--janya-neutral)',
+      background: 'var(--md-sys-color-surface)'
     },
-    pattern: 'radial-gradient(circle at 40% 40%, rgba(255, 255, 255, 0.1) 0%, transparent 50%)'
+    pattern: 'linear-gradient(135deg, var(--md-sys-color-surface-variant) 0%, var(--md-sys-color-surface) 100%)'
   }
 ];
 
@@ -161,65 +162,89 @@ const VoiceRecorder = ({ onRecordingComplete }: { onRecordingComplete: (audioBlo
   };
 
   return (
-    <div className="flex items-center gap-3">
-      <button
+    <div className="flex items-center w-[150px]">
+      <Button
         onClick={isRecording ? stopRecording : startRecording}
-        className={`flex items-center gap-2 px-4 py-2 rounded-xl transition-all duration-300 ${isRecording
-          ? 'bg-red-500 text-white shadow-lg'
-          : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+        variant={isRecording ? 'filled' : 'outlined'}
+        className={`flex items-center w-full transition-all duration-300 ${isRecording ? 'bg-red-500 text-white' : ''
           }`}
       >
         {isRecording ? <MicOff size={18} /> : <Mic size={18} />}
         {isRecording ? 'Stop' : 'Record'}
-      </button>
+      </Button>
       {isRecording && (
         <div className="flex items-center gap-2">
           <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
-          <span className="text-sm text-gray-600">{formatTime(recordingTime)}</span>
+          <span className="text-sm" style={{ color: 'var(--janya-text-secondary)' }}>{formatTime(recordingTime)}</span>
         </div>
       )}
     </div>
   );
 };
 
-const MoodSelector = ({ selectedMood, onMoodSelect }: {
+const MoodSelector = ({
+  selectedMood,
+  onMoodSelect,
+}: {
   selectedMood: string;
   onMoodSelect: (mood: string) => void;
 }) => (
-  <div className="space-y-3">
-    <h3 className="font-medium text-gray-800">How are you feeling?</h3>
-    <div className="grid grid-cols-4 gap-3">
+  <Card className="p-4">
+    <h3 className="font-medium mb-3" style={{ color: 'var(--janya-text-primary)' }}>
+      How are you feeling?
+    </h3>
+    <div className="flex flex-wrap gap-2 justify-between">
       {moods.map((mood) => {
         const IconComponent = mood.icon;
+        const isSelected = selectedMood === mood.name;
         return (
           <button
             key={mood.name}
+            type="button"
             onClick={() => onMoodSelect(mood.name)}
-            className={`flex flex-col items-center gap-2 p-3 rounded-xl transition-all duration-300 ${selectedMood === mood.name
-              ? 'bg-white shadow-lg border-2 scale-105'
-              : 'bg-gray-50 hover:bg-gray-100 border-2 border-transparent'
+            className={`flex flex-col items-center justify-center rounded-lg border transition-all duration-200 shadow-sm px-2 py-2 w-20 h-20 focus:outline-none ${isSelected
+              ? 'scale-105 ring-2 ring-offset-2'
+              : 'hover:bg-[rgba(0,0,0,0.03)]'
               }`}
             style={{
-              borderColor: selectedMood === mood.name ? mood.color : 'transparent'
+              borderColor: isSelected ? mood.color : 'var(--md-sys-color-outline-variant)',
+              background: isSelected ? mood.color : 'var(--md-sys-color-surface)',
+              boxShadow: isSelected ? '0 2px 8px 0 rgba(0,0,0,0.08)' : undefined,
+              color: isSelected ? 'white' : mood.color,
             }}
+            aria-label={mood.description}
           >
             <IconComponent
-              size={24}
-              style={{ color: selectedMood === mood.name ? mood.color : '#6B7280' }}
+              size={28}
+              style={{
+                color: isSelected ? 'white' : mood.color,
+                marginBottom: 4,
+              }}
             />
-            <span className="text-xs text-gray-600 capitalize">{mood.name}</span>
+            <span
+              className="text-xs capitalize font-medium"
+              style={{
+                color: isSelected ? 'white' : 'var(--janya-text-secondary)',
+                letterSpacing: 0.2,
+              }}
+            >
+              {mood.name}
+            </span>
           </button>
         );
       })}
     </div>
     {selectedMood && (
-      <div className="text-center mt-3">
-        <p className="text-sm text-gray-600">
-          {moods.find(m => m.name === selectedMood)?.description}
-        </p>
+      <div className="text-center mt-4">
+        <span className="inline-block text-xs px-3 py-1 rounded-full" style={{
+          background: 'var(--md-sys-color-surface-variant)',
+          color: 'var(--janya-text-secondary)',
+        }}>
+          {moods.find((m) => m.name === selectedMood)?.description}
+        </span>
       </div>
     )}
-  </div>
+  </Card>
 );
 
 const PhotoUpload = ({ onPhotoSelect }: { onPhotoSelect: (file: File) => void }) => {
@@ -233,7 +258,7 @@ const PhotoUpload = ({ onPhotoSelect }: { onPhotoSelect: (file: File) => void })
   };
 
   return (
-    <div>
+    <div className="flex items-center w-[150px]">
       <input
         ref={fileInputRef}
         type="file"
@@ -241,13 +266,14 @@ const PhotoUpload = ({ onPhotoSelect }: { onPhotoSelect: (file: File) => void })
         onChange={handleFileSelect}
         className="hidden"
       />
-      <button
+      <Button
         onClick={() => fileInputRef.current?.click()}
-        className="flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-600 rounded-xl hover:bg-gray-200 transition-colors"
+        variant="outlined"
+        className="flex flex-row items-center gap-2 w-full"
       >
         <Camera size={18} />
-        Add Photo
-      </button>
+        <p>Add Photo</p>
+      </Button>
     </div>
   );
 };
@@ -281,22 +307,32 @@ const AIInsights = ({ content, mood }: { content: string; mood: string }) => {
   if (!insights && !loading) return null;
 
   return (
-    <div className="bg-purple-50 rounded-xl p-4 border border-purple-100">
+    <Card
+      className="p-4 border"
+      style={{
+        backgroundColor: 'var(--md-sys-color-tertiary-container)',
+        borderColor: 'var(--md-sys-color-tertiary)'
+      }}
+    >
       <div className="flex items-center gap-2 mb-2">
-        <Sparkles size={16} className="text-purple-500" />
-        <span className="text-sm font-medium text-purple-700">AI Insights</span>
+        <Sparkles size={16} style={{ color: 'var(--md-sys-color-tertiary)' }} />
+        <span className="text-sm font-medium" style={{ color: 'var(--md-sys-color-on-tertiary-container)' }}>
+          AI Insights
+        </span>
       </div>
       {loading ? (
         <div className="flex items-center gap-2">
-          <div className="w-2 h-2 bg-purple-400 rounded-full animate-bounce"></div>
-          <div className="w-2 h-2 bg-purple-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-          <div className="w-2 h-2 bg-purple-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
-          <span className="text-sm text-purple-600 ml-2">Analyzing your thoughts...</span>
+          <LinearProgress className="flex-1" />
+          <span className="text-sm ml-2" style={{ color: 'var(--md-sys-color-on-tertiary-container)' }}>
+            Analyzing your thoughts...
+          </span>
         </div>
       ) : (
-        <p className="text-sm text-purple-700">{insights}</p>
+        <p className="text-sm" style={{ color: 'var(--md-sys-color-on-tertiary-container)' }}>
+          {insights}
+        </p>
       )}
-    </div>
+    </Card>
   );
 };
 
@@ -310,7 +346,7 @@ function JournalPageComponent() {
     title: '',
     content: '',
     mood: '',
-    theme: 'Sunrise',
+    theme: 'Medical Blue',
     date: new Date(),
     tags: []
   });
@@ -349,7 +385,7 @@ function JournalPageComponent() {
         title: journalEntry.title,
         content: journalEntry.content,
         mood: journalEntry.mood,
-        theme: journalEntry.theme || 'Sunrise',
+        theme: journalEntry.theme || 'Medical Blue',
         date: new Date(journalEntry.date),
         tags: journalEntry.tags || [],
         location: journalEntry.location
@@ -445,7 +481,7 @@ function JournalPageComponent() {
             title: '',
             content: '',
             mood: '',
-            theme: 'Sunrise',
+            theme: 'Medical Blue',
             date: new Date(),
             tags: []
           });
@@ -492,15 +528,10 @@ function JournalPageComponent() {
     return (
       <div style={{ backgroundColor: 'var(--md-sys-color-background)' }}>
         <Navigation />
-        <div className="min-h-screen flex items-center justify-center" style={{
-          background: selectedTheme.colors.background,
-          backgroundImage: selectedTheme.pattern
-        }}>
+        <div className="min-h-screen flex items-center justify-center">
           <div className="text-center">
-            <div className="w-12 h-12 mx-auto mb-4 rounded-full animate-spin bg-gradient-to-r from-purple-500 to-pink-500">
-              <div className="w-full h-full rounded-full border-4 border-transparent border-t-white" />
-            </div>
-            <p className="text-gray-600">Loading journal entry...</p>
+            <LinearProgress className="w-32 mx-auto mb-4" />
+            <p style={{ color: 'var(--janya-text-secondary)' }}>Loading journal entry...</p>
           </div>
         </div>
       </div>
@@ -508,148 +539,111 @@ function JournalPageComponent() {
   }
 
   return (
-    <div style={{ backgroundColor: 'var(--md-sys-color-background)' }}>
+    <div className="min-h-screen" style={{ backgroundColor: 'var(--md-sys-color-background)' }}>
       <Navigation />
-      <div className="min-h-screen" style={{
-        background: selectedTheme.colors.background,
-        backgroundImage: selectedTheme.pattern
-      }}>
 
-        {/* Header */}
-        {/* <div className="relative z-10 sticky top-0 bg-white bg-opacity-95 backdrop-blur-lg border-b border-gray-200">
-          <div className="max-w-md mx-auto px-4 py-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <Calendar size={20} className="text-gray-600" />
-                <div>
-                  <h1 className="font-bold text-gray-800">New Entry</h1>
-                  <div className="flex items-center gap-2 text-sm text-gray-600">
-                    <span>{new Date().toLocaleDateString('en-US', {
-                      weekday: 'long',
-                      month: 'long',
-                      day: 'numeric'
-                    })}</span>
-                    <WeatherIcon size={14} />
-                  </div>
-                </div>
-              </div>
-              <div className="flex items-center gap-2">
-                <Clock size={16} className="text-gray-500" />
-                <span className="text-sm text-gray-600">
-                  {new Date().toLocaleTimeString('en-US', {
-                    hour: '2-digit',
-                    minute: '2-digit'
-                  })}
-                </span>
-              </div>
+      {/* Content */}
+      <div className="relative z-10 max-w-md mx-auto px-4 py-6 space-y-6 pb-28">
+        {/* Title Input */}
+        <Card className="p-4">
+          <TextField
+            type="text"
+            placeholder={isEditing ? "Edit your journal title..." : "What's on your mind today?"}
+            value={entry.title}
+            onChange={(e) => setEntry(prev => ({ ...prev, title: e.target.value }))}
+            className="w-full"
+            label="Journal Title"
+          />
+        </Card>
+
+        {/* Mood Selector */}
+        <MoodSelector
+          selectedMood={entry.mood || ''}
+          onMoodSelect={(mood) => setEntry(prev => ({ ...prev, mood }))}
+        />
+
+        {/* Content Editor */}
+        <Card className="p-4">
+          <div className="flex items-center gap-2 mb-3">
+            <Type size={18} style={{ color: 'var(--janya-text-secondary)' }} />
+            <span className="text-sm font-medium" style={{ color: 'var(--janya-text-primary)' }}>Your thoughts</span>
+            <span className="ml-auto text-xs" style={{ color: 'var(--janya-text-secondary)' }}>{wordCount} words</span>
+          </div>
+          <textarea
+            placeholder="Write about your day, your thoughts, your dreams..."
+            value={entry.content}
+            onChange={(e) => setEntry(prev => ({ ...prev, content: e.target.value }))}
+            className="w-full h-40 bg-transparent border-none outline-none resize-none leading-relaxed"
+            style={{
+              color: 'var(--janya-text-primary)',
+              backgroundColor: 'transparent'
+            }}
+          />
+        </Card>
+
+        {/* Media Controls */}
+        <Card className="p-4">
+          <div className="flex items-center justify-between">
+            <PhotoUpload onPhotoSelect={handlePhotoSelect} />
+            <VoiceRecorder onRecordingComplete={handleRecordingComplete} />
+          </div>
+
+          {photoPreview && (
+            <div className="mt-4">
+              <img
+                src={photoPreview}
+                alt="Selected photo"
+                className="w-full h-48 object-cover rounded-xl"
+              />
             </div>
-          </div>
-        </div> */}
-
-        {/* Content */}
-        <div className="relative z-10 max-w-md mx-auto px-4 py-6 space-y-6 pb-28">
-          {/* Title Input */}
-          <div className="bg-white bg-opacity-90 backdrop-blur-sm rounded-2xl p-4 shadow-lg">
-            <input
-              type="text"
-              placeholder={isEditing ? "Edit your journal title..." : "What's on your mind today?"}
-              value={entry.title}
-              onChange={(e) => setEntry(prev => ({ ...prev, title: e.target.value }))}
-              className="w-full text-lg font-medium bg-transparent border-none outline-none text-gray-600"
-            />
-          </div>
-
-          {/* Mood Selector */}
-          <div className="bg-white bg-opacity-90 backdrop-blur-sm rounded-2xl p-4 shadow-lg">
-            <MoodSelector
-              selectedMood={entry.mood || ''}
-              onMoodSelect={(mood) => setEntry(prev => ({ ...prev, mood }))}
-            />
-          </div>
-
-          {/* Content Editor */}
-          <div className="bg-white bg-opacity-90 backdrop-blur-sm rounded-2xl p-4 shadow-lg">
-            <div className="flex items-center gap-2 mb-3">
-              <Type size={18} className="text-gray-600" />
-              <span className="text-sm font-medium text-gray-700">Your thoughts</span>
-              <span className="ml-auto text-xs text-gray-500">{wordCount} words</span>
-            </div>
-            <textarea
-              placeholder="Write about your day, your thoughts, your dreams..."
-              value={entry.content}
-              onChange={(e) => setEntry(prev => ({ ...prev, content: e.target.value }))}
-              className="w-full h-40 bg-transparent border-none outline-none resize-none placeholder-gray-500 text-gray-800 leading-relaxed"
-            />
-          </div>
-
-          {/* Media Controls */}
-          <div className="bg-white bg-opacity-90 backdrop-blur-sm rounded-2xl p-4 shadow-lg">
-            <div className="flex items-center justify-between">
-              <PhotoUpload onPhotoSelect={handlePhotoSelect} />
-              <VoiceRecorder onRecordingComplete={handleRecordingComplete} />
-            </div>
-
-            {photoPreview && (
-              <div className="mt-4">
-                <img
-                  src={photoPreview}
-                  alt="Selected photo"
-                  className="w-full h-48 object-cover rounded-xl"
-                />
-              </div>
-            )}
-          </div>
-
-          {/* AI Insights */}
-          {entry.content && entry.mood && (
-            <AIInsights content={entry.content} mood={entry.mood} />
           )}
+        </Card>
 
-          {/* Save Button */}
-          <button
-            onClick={handleSave}
-            disabled={isSaving}
-            className={`w-full py-4 rounded-2xl font-medium transition-all duration-300 ${isSaving
-              ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-              : 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg hover:shadow-xl transform hover:scale-105'
-              }`}
-          >
-            {isSaving ? (
-              <div className="flex items-center justify-center gap-2">
-                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                Saving your thoughts...
-              </div>
-            ) : (
-              <div className="flex items-center justify-center gap-2">
-                <Save size={20} />
-                {isEditing ? 'Update Entry' : 'Save Entry'}
-              </div>
-            )}
-          </button>
-        </div>
-
-        {/* Success Message */}
-        {showSuccess && (
-          <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50">
-            <div className="flex items-center gap-2">
-              <div className="w-5 h-5 bg-white rounded-full flex items-center justify-center">
-                <span className="text-green-500 text-sm">✓</span>
-              </div>
-              Journal saved successfully!
-            </div>
-          </div>
-        )}
-
-        {/* Error Message */}
-        {error && (
-          <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-red-500 text-white px-6 py-3 rounded-lg shadow-lg z-50">
-            <div className="flex items-center gap-2">
-              <span className="text-lg">⚠️</span>
-              {error}
-            </div>
-          </div>
+        {/* AI Insights */}
+        {entry.content && entry.mood && (
+          <AIInsights content={entry.content} mood={entry.mood} />
         )}
       </div>
+
+      {/* Floating Save Button */}
+      <FAB
+        onClick={handleSave}
+        disabled={isSaving}
+        className="fixed bottom-6 right-6"
+        style={{
+          backgroundColor: isSaving ? 'var(--md-sys-color-outline)' : 'var(--janya-primary)'
+        }}
+      >
+        {isSaving ? (
+          <LinearProgress />
+        ) : (
+          <Save size={24} style={{ color: 'white' }} />
+        )}
+      </FAB>
+
+      {/* Success Message */}
+      {showSuccess && (
+        <Card className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 px-6 py-3 shadow-lg z-50"
+          style={{ backgroundColor: 'var(--janya-secondary)' }}>
+          <div className="flex items-center gap-2 text-white">
+            <div className="w-5 h-5 bg-white rounded-full flex items-center justify-center">
+              <span style={{ color: 'var(--janya-secondary)' }} className="text-sm">✓</span>
+            </div>
+            Journal saved successfully!
+          </div>
+        </Card>
+      )}
+
+      {/* Error Message */}
+      {error && (
+        <Card className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 px-6 py-3 shadow-lg z-50"
+          style={{ backgroundColor: 'var(--md-sys-color-error)' }}>
+          <div className="flex items-center gap-2 text-white">
+            <span className="text-lg">⚠️</span>
+            {error}
+          </div>
+        </Card>
+      )}
     </div>
   );
 }

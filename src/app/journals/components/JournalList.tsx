@@ -2,6 +2,7 @@
 
 import { Calendar, FileText, ChevronRight, Image, Mic } from 'lucide-react';
 import { Journal } from '@/types/theme';
+import { Card, Chip } from '@/app/components/MaterialComponents';
 
 interface JournalListProps {
     journals: Journal[];
@@ -11,22 +12,22 @@ interface JournalListProps {
 const JournalListItem = ({ journal, onClick }: { journal: Journal; onClick: (journal: Journal) => void }) => {
     const getMoodColor = (mood: string) => {
         const colors: Record<string, string> = {
-            happy: '#f59e0b',
-            sad: '#3b82f6',
-            excited: '#ef4444',
-            calm: '#10b981',
-            anxious: '#8b5cf6',
-            angry: '#f97316',
-            thoughtful: '#6366f1',
-            inspired: '#ec4899'
+            happy: 'var(--janya-secondary)',
+            sad: 'var(--janya-primary)',
+            excited: 'var(--md-sys-color-error)',
+            calm: 'var(--janya-accent)',
+            anxious: 'var(--md-sys-color-tertiary)',
+            angry: 'var(--md-sys-color-error)',
+            thoughtful: 'var(--janya-primary)',
+            inspired: 'var(--janya-secondary)'
         };
-        return colors[mood] || '#6b7280';
+        return colors[mood] || 'var(--md-sys-color-outline)';
     };
 
     return (
-        <div
+        <Card
             onClick={() => onClick(journal)}
-            className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 hover:shadow-md transition-all duration-300 cursor-pointer group"
+            className="p-4 hover:shadow-md transition-all duration-300 cursor-pointer group"
         >
             <div className="flex items-start gap-4">
                 {/* Mood Indicator */}
@@ -38,11 +39,23 @@ const JournalListItem = ({ journal, onClick }: { journal: Journal; onClick: (jou
                 {/* Content */}
                 <div className="flex-1 min-w-0">
                     <div className="flex items-start justify-between mb-2">
-                        <h3 className="font-semibold text-gray-900 truncate pr-2">{journal.title}</h3>
-                        <ChevronRight size={16} className="text-gray-400 group-hover:text-gray-600 transition-colors flex-shrink-0" />
+                        <h3
+                            className="font-semibold truncate pr-2"
+                            style={{ color: 'var(--janya-text-primary)' }}
+                        >
+                            {journal.title}
+                        </h3>
+                        <ChevronRight
+                            size={16}
+                            className="transition-colors flex-shrink-0"
+                            style={{ color: 'var(--janya-text-secondary)' }}
+                        />
                     </div>
 
-                    <p className="text-gray-600 text-sm line-clamp-2 mb-3">
+                    <p
+                        className="text-sm line-clamp-2 mb-3"
+                        style={{ color: 'var(--janya-text-secondary)' }}
+                    >
                         {journal.preview}
                     </p>
 
@@ -50,21 +63,36 @@ const JournalListItem = ({ journal, onClick }: { journal: Journal; onClick: (jou
                     {(journal.photo || journal.audioRecording) && (
                         <div className="flex items-center gap-2 mb-3">
                             {journal.photo && (
-                                <div className="flex items-center gap-1 text-xs text-blue-600 bg-blue-50 px-2 py-1 rounded-full">
-                                    <Image size={12} />
-                                    <span>Image</span>
-                                </div>
+                                <Chip
+                                    className="text-xs"
+                                    style={{
+                                        backgroundColor: 'var(--md-sys-color-primary-container)',
+                                        color: 'var(--md-sys-color-on-primary-container)'
+                                    }}
+                                >
+                                    <Image size={12} className="mr-1" />
+                                    Image
+                                </Chip>
                             )}
                             {journal.audioRecording && (
-                                <div className="flex items-center gap-1 text-xs text-purple-600 bg-purple-50 px-2 py-1 rounded-full">
-                                    <Mic size={12} />
-                                    <span>Audio</span>
-                                </div>
+                                <Chip
+                                    className="text-xs"
+                                    style={{
+                                        backgroundColor: 'var(--md-sys-color-tertiary-container)',
+                                        color: 'var(--md-sys-color-on-tertiary-container)'
+                                    }}
+                                >
+                                    <Mic size={12} className="mr-1" />
+                                    Audio
+                                </Chip>
                             )}
                         </div>
                     )}
 
-                    <div className="flex items-center gap-4 text-xs text-gray-500">
+                    <div
+                        className="flex items-center gap-4 text-xs"
+                        style={{ color: 'var(--janya-text-secondary)' }}
+                    >
                         <div className="flex items-center gap-1">
                             <Calendar size={12} />
                             <span>{new Date(journal.date).toLocaleDateString('en-US', {
@@ -82,7 +110,7 @@ const JournalListItem = ({ journal, onClick }: { journal: Journal; onClick: (jou
                     </div>
                 </div>
             </div>
-        </div>
+        </Card>
     );
 };
 
@@ -100,11 +128,24 @@ export default function JournalList({ journals, onJournalClick }: JournalListPro
 
                 {journals.length === 0 && (
                     <div className="text-center py-16">
-                        <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-gray-100 flex items-center justify-center">
-                            <FileText size={32} className="text-gray-400" />
+                        <div
+                            className="w-20 h-20 mx-auto mb-4 rounded-full flex items-center justify-center"
+                            style={{ backgroundColor: 'var(--md-sys-color-surface-variant)' }}
+                        >
+                            <FileText size={32} style={{ color: 'var(--janya-text-secondary)' }} />
                         </div>
-                        <h3 className="text-lg font-semibold text-gray-900 mb-2">No entries found</h3>
-                        <p className="text-gray-500 text-sm">Try adjusting your search or filters</p>
+                        <h3
+                            className="text-lg font-semibold mb-2"
+                            style={{ color: 'var(--janya-text-primary)' }}
+                        >
+                            No entries found
+                        </h3>
+                        <p
+                            className="text-sm"
+                            style={{ color: 'var(--janya-text-secondary)' }}
+                        >
+                            Try adjusting your search or filters
+                        </p>
                     </div>
                 )}
             </div>

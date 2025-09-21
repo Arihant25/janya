@@ -1,6 +1,7 @@
 'use client';
 
 import { Search, Grid, List, ArrowLeft, Grid3X3 } from 'lucide-react';
+import { IconButton, TextField } from '@/app/components/MaterialComponents';
 
 interface JournalHeaderProps {
     title: string;
@@ -24,70 +25,76 @@ export default function JournalHeader({
     onBack
 }: JournalHeaderProps) {
     return (
-        <div className="sticky top-0 z-20 bg-white/95 backdrop-blur-lg border-b border-gray-100">
+        <div
+            className="sticky top-0 z-20 backdrop-blur-lg border-b"
+            style={{
+                backgroundColor: 'var(--md-sys-color-surface)',
+                borderColor: 'var(--md-sys-color-outline-variant)'
+            }}
+        >
             <div className="px-4 py-6">
                 {/* Title Section */}
                 <div className="flex items-center justify-between mb-6">
                     <div className="flex items-center gap-3">
                         {showBack && (
-                            <button
+                            <IconButton
                                 onClick={onBack}
-                                className="p-2 rounded-xl bg-gray-100 hover:bg-gray-200 transition-colors"
+                                variant="filled-tonal"
                             >
-                                <ArrowLeft size={20} className="text-gray-700" />
-                            </button>
+                                <ArrowLeft size={20} />
+                            </IconButton>
                         )}
                         <div>
-                            <h1 className="text-2xl font-bold text-gray-900">{title}</h1>
-                            <p className="text-sm text-gray-500 mt-1">{subtitle}</p>
+                            <h1 className="text-2xl font-bold" style={{ color: 'var(--janya-text-primary)' }}>{title}</h1>
+                            <p className="text-sm mt-1" style={{ color: 'var(--janya-text-secondary)' }}>{subtitle}</p>
                         </div>
                     </div>
 
                     {/* View Toggle Bubble */}
                     <div className="relative">
-                        <div className="flex bg-gray-100 p-1 rounded-full">
-                            <button
+                        <div
+                            className="flex p-1 rounded-full"
+                            style={{ backgroundColor: 'var(--md-sys-color-surface-variant)' }}
+                        >
+                            <IconButton
                                 onClick={() => onViewModeChange('folders')}
-                                className={`p-2 rounded-full transition-all duration-300 ${viewMode === 'folders'
-                                    ? 'bg-white shadow-sm scale-105'
-                                    : 'hover:bg-gray-200'
-                                    }`}
+                                variant={viewMode === 'folders' ? 'filled' : 'standard'}
                             >
-                                <Grid size={16} className={viewMode === 'folders' ? 'text-gray-800' : 'text-gray-500'} />
-                            </button>
-                            <button
+                                <Grid size={16} />
+                            </IconButton>
+                            <IconButton
                                 onClick={() => onViewModeChange('list')}
-                                className={`p-2 rounded-full transition-all duration-300 ${viewMode === 'list'
-                                    ? 'bg-white shadow-sm scale-105'
-                                    : 'hover:bg-gray-200'
-                                    }`}
+                                variant={viewMode === 'list' ? 'filled' : 'standard'}
                             >
-                                <List size={16} className={viewMode === 'list' ? 'text-gray-800' : 'text-gray-500'} />
-                            </button>
-                            <button
+                                <List size={16} />
+                            </IconButton>
+                            <IconButton
                                 onClick={() => onViewModeChange('grid')}
-                                className={`p-2 rounded-full transition-all duration-300 ${viewMode === 'grid'
-                                    ? 'bg-white shadow-sm scale-105'
-                                    : 'hover:bg-gray-200'
-                                    }`}
+                                variant={viewMode === 'grid' ? 'filled' : 'standard'}
                             >
-                                <Grid3X3 size={16} className={viewMode === 'grid' ? 'text-gray-800' : 'text-gray-500'} />
-                            </button>
+                                <Grid3X3 size={16} />
+                            </IconButton>
                         </div>
                     </div>
                 </div>
 
                 {/* Search Bar */}
                 <div className="relative">
-                    <Search size={20} className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                    <Search
+                        size={20}
+                        className="absolute left-4 top-1/2 transform -translate-y-1/2"
+                        style={{ color: 'var(--janya-text-secondary)' }}
+                    />
                     <input
                         type="text"
                         placeholder="Search your thoughts..."
                         value={searchTerm}
                         onChange={(e) => onSearchChange(e.target.value)}
-                        className="w-full pl-12 pr-4 py-4 bg-gray-50 rounded-2xl border-0 focus:bg-white focus:ring-2 transition-all duration-300"
+                        className="w-full pl-12 pr-4 py-4 rounded-2xl border-0 transition-all duration-300"
                         style={{
-                            fontSize: '16px' // Prevents zoom on iOS
+                            fontSize: '16px', // Prevents zoom on iOS
+                            backgroundColor: 'var(--md-sys-color-surface-variant)',
+                            color: 'var(--janya-text-primary)'
                         }}
                     />
                 </div>
