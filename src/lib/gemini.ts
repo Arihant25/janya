@@ -31,6 +31,17 @@ export class GeminiService {
               },
               emotions: {
                 type: Type.OBJECT,
+                properties: {
+                  happy: { type: Type.NUMBER, description: "Happiness intensity 0-1" },
+                  sad: { type: Type.NUMBER, description: "Sadness intensity 0-1" },
+                  anxious: { type: Type.NUMBER, description: "Anxiety intensity 0-1" },
+                  excited: { type: Type.NUMBER, description: "Excitement intensity 0-1" },
+                  angry: { type: Type.NUMBER, description: "Anger intensity 0-1" },
+                  peaceful: { type: Type.NUMBER, description: "Peace intensity 0-1" },
+                  grateful: { type: Type.NUMBER, description: "Gratitude intensity 0-1" },
+                  overwhelmed: { type: Type.NUMBER, description: "Overwhelm intensity 0-1" }
+                },
+                additionalProperties: { type: Type.NUMBER },
                 description: "Emotion names as keys with intensity 0-1 as values"
               },
               themes: {
@@ -95,6 +106,14 @@ export class GeminiService {
                 },
                 metadata: {
                   type: Type.OBJECT,
+                  properties: {
+                    author: { type: Type.STRING, description: "Author or creator" },
+                    genre: { type: Type.STRING, description: "Genre or category" },
+                    year: { type: Type.STRING, description: "Publication or release year" },
+                    duration: { type: Type.STRING, description: "Duration or length" },
+                    tags: { type: Type.ARRAY, items: { type: Type.STRING }, description: "Additional tags" }
+                  },
+                  additionalProperties: { type: Type.STRING },
                   description: "Additional metadata like author, artist, duration, etc."
                 },
                 mood: {
