@@ -88,5 +88,6 @@ export interface UserStats {
   moodDistribution: { [mood: string]: number };
   favoriteThemes: string[];
   lastEntryDate?: Date;
+  persona?: string;
   updatedAt: Date;
 }
