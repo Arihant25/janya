@@ -33,37 +33,46 @@ export default function JanyaLandingPage() {
     };
 
     return (
-        <div className="min-h-screen" style={{ backgroundColor: 'var(--md-sys-color-background)' }}>
+        <div className="min-h-screen">
             {/* Navigation */}
             <Navbar onGetStarted={handleStartJournalling} />
 
             {/* Hero Section */}
-            <section className="relative overflow-hidden py-16 md:py-24" 
-                     style={{ 
-                         backgroundColor: 'var(--md-sys-color-primary)',
-                         color: 'var(--md-sys-color-on-primary)'
-                     }}>
+            <section className="relative overflow-hidden py-16 md:py-24"
+                style={{
+                    background: 'linear-gradient(135deg, var(--md-sys-color-primary) 10%, var(--md-sys-color-secondary) 100%)',
+                    color: 'var(--md-sys-color-on-primary)'
+                }}>
                 <Elevation level={1} className="absolute inset-0" />
                 <div className="relative z-10 container mx-auto px-4">
                     <div className="max-w-4xl mx-auto text-center">
-                        <div className="flex justify-center mb-6">
-                            <Sparkles className="w-16 h-16 md:w-20 md:h-20" />
+                        <div className="flex justify-center mb-6 mt-4">
+                            <Sparkles className="w-16 h-16 md:w-20 md:h-20"
+                                style={{ color: 'var(--md-sys-color-tertiary)' }}
+                            />
                         </div>
-                        <h1 className="text-4xl md:text-6xl font-bold mb-6 leading-tight">
-                            Transform Your Thoughts with Janya
-                        </h1>
-                        <p className="text-xl md:text-2xl opacity-90 mb-12 max-w-3xl mx-auto leading-relaxed">
+                        <p className="text-4xl lg:text-5xl font-bold mb-16"
+                            style={{ color: 'var(--md-sys-color-outline)' }}    
+                        >
+                            Transform Your Thoughts with
+                            <span style={{ color: 'var(--md-sys-color-tertiary)', marginLeft: '0.69rem' }}>
+                                Janya
+                            </span>
+                        </p>
+                        <p className="text-xl md:text-2xl opacity-90 mb-12 max-w-4xl mx-auto"
+                            style={{ color: 'var(--md-sys-color-secondary-container)' }}
+                        >
                             Discover meaningful insights from your daily reflections with Janya's intelligent analysis and personalized growth recommendations.
                         </p>
 
-                        <div className="flex flex-col sm:flex-row gap-4 justify-center mb-16">
+                        <div className="flex flex-col sm:flex-row gap-4 justify-center mt-6 mb-12 max-w-xs mx-auto">
                             <Button
                                 variant="filled"
                                 size="large"
                                 className="px-8 py-4 text-lg font-semibold"
                                 onClick={handleStartJournalling}
                                 style={{ 
-                                    backgroundColor: 'var(--md-sys-color-surface)',
+                                    backgroundColor: 'var(--md-sys-color-on-surface-variant)',
                                     color: 'var(--md-sys-color-on-surface)'
                                 }}
                             >
@@ -161,19 +170,16 @@ export default function JanyaLandingPage() {
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                         {[
                             {
-                                step: '01',
                                 title: 'Write Freely',
                                 description: 'Express your thoughts and feelings in our intuitive, distraction-free journal interface',
                                 icon: Edit
                             },
                             {
-                                step: '02',
                                 title: 'AI Analysis',
                                 description: 'Our intelligent system analyzes patterns, emotions, and themes in your entries',
                                 icon: Brain
                             },
                             {
-                                step: '03',
                                 title: 'Grow & Improve',
                                 description: 'Receive personalized insights and actionable recommendations for personal growth',
                                 icon: TrendingUp
@@ -183,10 +189,6 @@ export default function JanyaLandingPage() {
                             return (
                                 <Card key={index} variant="elevated" className="text-center p-8 relative">
                                     <Elevation level={1} />
-                                    <div className="w-20 h-20 mx-auto mb-6 rounded-full flex items-center justify-center text-2xl font-bold text-white"
-                                         style={{ backgroundColor: 'var(--md-sys-color-primary)' }}>
-                                        {step.step}
-                                    </div>
                                     <div className="mb-6">
                                         <IconComponent className="w-16 h-16 mx-auto" style={{ color: 'var(--md-sys-color-secondary)' }} />
                                     </div>

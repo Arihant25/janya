@@ -1,5 +1,5 @@
 @import "tailwindcss";
-@import "./janya-styles.css";
+@import "./main.css";
 
 :root {
   --background: var(--md-sys-color-background);
